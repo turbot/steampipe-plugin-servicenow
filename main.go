@@ -7,8 +7,7 @@ import (
 )
 
 func main() {
-	resp := &rest.OAuthTokenResponse{}
-	code, err := rest.New(rest.Config{
+	client, err := rest.New(rest.Config{
 		InstanceURL:  "https://dev129225.service-now.com",
 		GrantType:    "password",
 		ClientID:     "9148ce34f5252110392c96f819dbd422",
@@ -16,9 +15,15 @@ func main() {
 		Username:     "admin",
 		Password:     "j0tdsadasH3",
 	})
-	}, resp)
 
-	fmt.Println(code)
 	fmt.Println(err)
-	fmt.Println(resp.AccessToken)
+	fmt.Println(client)
+
+	cmdbCi, _ := client.GetCmdbCIs(10)
+	fmt.Println(len(cmdbCi.Result))
+	for _, ci := range cmdbCi.Result {
+		if ci.ShortDescription != "" {
+			fmt.Println(ci.ShortDescription)
+		}
+	}
 }

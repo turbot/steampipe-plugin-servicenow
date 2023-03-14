@@ -1,25 +1,23 @@
 package rest
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
-	"time"
 )
 
 type Client struct {
-	// baseURL         *url.URL
-	// servicenowToken string
+	baseURL         *url.URL
+	servicenowToken string
 	// client          *http.Client
 }
 
 type Config struct {
-	URL          string
+	InstanceURL  string
 	GrantType    string
 	ClientID     string
 	ClientSecret string
@@ -27,74 +25,46 @@ type Config struct {
 	Password     string
 }
 
-type authPayload struct {
-	GrantType    string
-	ClientID     string
-	ClientSecret string
-	Username     string
-	Password     string
+func New(config Config) (client *Client, err error) {
+	baseURL, _ := url.Parse(config.InstanceURL)
+
+	resp := &OAuthTokenResponse{}
+	_, err = authenticate(config, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		baseURL:         baseURL,
+		servicenowToken: resp.AccessToken,
+	}, nil
 }
 
-func New(config Config) *Client {
-	u, _ := url.Parse(config.URL)
+func authenticate(config Config, resp interface{}) (statusCode int, err error) {
+	endpointUrl, _ := url.Parse(config.InstanceURL)
+	endpointUrl = endpointUrl.JoinPath("oauth_token.do")
+	method := "POST"
 
-	// Ensure endpoint ends with a slash
-	endpoint := u.Path
-	if !strings.HasSuffix(endpoint, "/") {
-		endpoint += "/"
+	payloadParameters := url.Values{
+		"grant_type":    {config.GrantType},
+		"client_id":     {config.ClientID},
+		"client_secret": {config.ClientSecret},
+		"username":      {config.Username},
+		"password":      {config.Password},
 	}
+	payload := strings.NewReader(payloadParameters.Encode())
 
-	baseURL := u.ResolveReference(&url.URL{Path: endpoint})
-
-	payload := authPayload{
-		GrantType:    config.GrantType,
-		ClientID:     config.ClientID,
-		ClientSecret: config.ClientSecret,
-		Username:     config.Username,
-		Password:     config.Password,
-	}
-
-	var r io.Reader
-	buf := &bytes.Buffer{}
-	r = buf
-	err := json.NewEncoder(buf).Encode(payload)
+	client := &http.Client{}
+	req, err := http.NewRequest(method, endpointUrl.String(), payload)
 	if err != nil {
-		fmt.Errorf(err.Error())
-		return nil
+		fmt.Println(err)
+		return 0, err
 	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	req, err := http.NewRequest("POST", baseURL.ResolveReference(u).String(), r)
+	httpResp, err := client.Do(req)
 	if err != nil {
-		fmt.Errorf(err.Error())
-		return nil
-	}
-
-	var resp interface{}
-	_, err = DoRequest(&http.Client{Timeout: 10 * time.Second}, req, resp)
-	if err != nil {
-		var httpError *HTTPError
-		if errors.As(err, &httpError) && httpError.Code == 404 {
-			return nil
-		}
-
-		return nil
-	}
-
-	fmt.Sprintln(resp)
-
-	// client := &Client{
-	// 	baseURL: u.ResolveReference(&url.URL{Path: endpoint}),
-	// 	client: &http.Client{
-	// 		Timeout: 10 * time.Second,
-	// 	},
-	// }
-	// return client
-	return nil
-}
-
-func DoRequest(c *http.Client, req *http.Request, resp interface{}) (statusCode int, err error) {
-	httpResp, err := c.Do(req)
-	if err != nil {
+		fmt.Println(err)
 		return 0, err
 	}
 	defer httpResp.Body.Close()
@@ -113,6 +83,7 @@ func DoRequest(c *http.Client, req *http.Request, resp interface{}) (statusCode 
 	if resp != nil {
 		err = json.NewDecoder(httpResp.Body).Decode(resp)
 		if err != nil {
+			fmt.Println(err.Error())
 			return httpResp.StatusCode, err
 		}
 	}
@@ -132,4 +103,66 @@ func (e *HTTPError) Error() string {
 		return e.Message
 	}
 	return fmt.Sprintf("response %d (%s)", e.Code, http.StatusText(e.Code))
+}
+
+func (c *Client) GetIncidents() {
+	endpointUrl := c.baseURL.JoinPath("api/now/table/incident")
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(body))
+}
+
+func (c *Client) GetCmdbCIs(limit int) (*CmdbCI, error) {
+	endpointUrl := c.baseURL.JoinPath("api/now/table/cmdb_ci")
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var result CmdbCI
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Can not unmarshal JSON", err.Error())
+		return nil, err
+	}
+	return &result, nil
 }

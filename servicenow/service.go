@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-servicenow/rest"
+	"github.com/turbot/steampipe-plugin-servicenow/goservicenow"
 )
 
-func Connect(ctx context.Context, d *plugin.QueryData) (*rest.Client, error) {
+func Connect(ctx context.Context, d *plugin.QueryData) (*goservicenow.Client, error) {
 	conn, err := connectCached(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
-	return conn.(*rest.Client), nil
+	return conn.(*goservicenow.Client), nil
 }
 
 var connectCached = plugin.HydrateFunc(connectUncached).Memoize()
@@ -20,7 +20,7 @@ var connectCached = plugin.HydrateFunc(connectUncached).Memoize()
 func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (any, error) {
 	servicenowConfig := GetConfig(d.Connection)
 
-	client, err := rest.New(rest.Config{
+	client, err := goservicenow.New(goservicenow.Config{
 		InstanceURL:  *servicenowConfig.InstanceURL,
 		GrantType:    "password",
 		ClientID:     *servicenowConfig.ClientID,

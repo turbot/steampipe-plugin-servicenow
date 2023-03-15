@@ -1,4 +1,4 @@
-package rest
+package goservicenow
 
 import (
 	"encoding/json"

@@ -105,32 +105,38 @@ func (e *HTTPError) Error() string {
 	return fmt.Sprintf("response %d (%s)", e.Code, http.StatusText(e.Code))
 }
 
-func (c *Client) GetIncidents() {
+func (c *Client) GetIncidents(limit int) (*Incident, error) {
 	endpointUrl := c.baseURL.JoinPath("api/now/table/incident")
 	method := "GET"
 
 	client := &http.Client{}
-	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil, err
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
 
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil, err
 	}
-	fmt.Println(string(body))
+
+	var result Incident
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Can not unmarshal JSON", err.Error())
+		return nil, err
+	}
+	return &result, nil
 }
 
 func (c *Client) GetCmdbCIs(limit int) (*CmdbCI, error) {

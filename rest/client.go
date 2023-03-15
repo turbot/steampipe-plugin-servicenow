@@ -25,6 +25,14 @@ type Config struct {
 	Password     string
 }
 
+type OAuthTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+}
+
 func New(config Config) (client *Client, err error) {
 	baseURL, _ := url.Parse(config.InstanceURL)
 
@@ -90,6 +98,40 @@ func authenticate(config Config, resp interface{}) (statusCode int, err error) {
 	return httpResp.StatusCode, nil
 }
 
+func (c *Client) getTable(tableName string, limit int, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath(fmt.Sprintf("api/now/table/%s", tableName))
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	// var result Incident
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Can not unmarshal JSON", err.Error())
+		return err
+	}
+	return nil
+}
+
 type HTTPError struct {
 	Code    int
 	Message string
@@ -103,72 +145,4 @@ func (e *HTTPError) Error() string {
 		return e.Message
 	}
 	return fmt.Sprintf("response %d (%s)", e.Code, http.StatusText(e.Code))
-}
-
-func (c *Client) GetIncidents(limit int) (*Incident, error) {
-	endpointUrl := c.baseURL.JoinPath("api/now/table/incident")
-	method := "GET"
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
-
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	var result Incident
-	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Can not unmarshal JSON", err.Error())
-		return nil, err
-	}
-	return &result, nil
-}
-
-func (c *Client) GetCmdbCIs(limit int) (*CmdbCI, error) {
-	endpointUrl := c.baseURL.JoinPath("api/now/table/cmdb_ci")
-	method := "GET"
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
-
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	var result CmdbCI
-	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Can not unmarshal JSON", err.Error())
-		return nil, err
-	}
-	return &result, nil
 }

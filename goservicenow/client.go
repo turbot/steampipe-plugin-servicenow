@@ -98,7 +98,7 @@ func authenticate(config Config, resp interface{}) (statusCode int, err error) {
 	return httpResp.StatusCode, nil
 }
 
-func (c *Client) getTable(tableName string, limit int, result interface{}) error {
+func (c *Client) listTable(tableName string, limit int, result interface{}) error {
 	endpointUrl := c.baseURL.JoinPath(fmt.Sprintf("api/now/table/%s", tableName))
 	method := "GET"
 
@@ -123,6 +123,44 @@ func (c *Client) getTable(tableName string, limit int, result interface{}) error
 		fmt.Println(err)
 		return err
 	}
+
+	// var result Incident
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Can not unmarshal JSON", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *Client) getTable(tableName string, sysId string, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath(fmt.Sprintf("api/now/table/%s/%s", tableName, sysId))
+	method := "GET"
+
+	client := &http.Client{}
+	// req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", endpointUrl.String(), sysId), nil)
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	defer res.Body.Close()
+
+	// fmt.Println(string(body))
 
 	// var result Incident
 	if err := json.Unmarshal(body, &result); err != nil {

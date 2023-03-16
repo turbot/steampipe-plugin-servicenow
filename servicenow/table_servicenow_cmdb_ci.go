@@ -17,6 +17,10 @@ func tableServicenowCmdbCi() *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowCmdbCis,
 		},
+		Get: &plugin.GetConfig{
+			Hydrate:    getServicenowCmdbCi,
+			KeyColumns: plugin.SingleColumn("sys_id"),
+		},
 		Columns: []*plugin.Column{
 			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "attested_date", Description: "", Type: proto.ColumnType_STRING},
@@ -124,4 +128,25 @@ func listServicenowCmdbCis(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	return nil, err
+}
+
+//// GET FUNCTION
+
+func getServicenowCmdbCi(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	client, err := Connect(ctx, d)
+	if err != nil {
+		logger.Error("servicenow_sys_user.getServicenowCmdbCi", "connect_error", err)
+		return nil, err
+	}
+
+	sysId := d.EqualsQualString("sys_id")
+
+	sysUser, err := client.GetCmdbCI(sysId)
+	if err != nil {
+		logger.Error("servicenow_sys_user.getServicenowCmdbCi", "query_error", err)
+		return nil, err
+	}
+
+	return sysUser.Result, err
 }

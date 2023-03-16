@@ -17,6 +17,10 @@ func tableServicenowSysUser() *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowSysUsers,
 		},
+		Get: &plugin.GetConfig{
+			Hydrate:    getServicenowSysUser,
+			KeyColumns: plugin.SingleColumn("sys_id"),
+		},
 		Columns: []*plugin.Column{
 			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "first_name", Description: "", Type: proto.ColumnType_STRING},
@@ -103,4 +107,25 @@ func listServicenowSysUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	return nil, err
+}
+
+//// GET FUNCTION
+
+func getServicenowSysUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	client, err := Connect(ctx, d)
+	if err != nil {
+		logger.Error("servicenow_sys_user.getServicenowSysUser", "connect_error", err)
+		return nil, err
+	}
+
+	sysId := d.EqualsQualString("sys_id")
+
+	sysUser, err := client.GetSysUser(sysId)
+	if err != nil {
+		logger.Error("servicenow_sys_user.getServicenowSysUser", "query_error", err)
+		return nil, err
+	}
+
+	return sysUser.Result, err
 }

@@ -17,6 +17,10 @@ func tableServicenowIncident() *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowIncidents,
 		},
+		Get: &plugin.GetConfig{
+			Hydrate:    getServicenowIncident,
+			KeyColumns: plugin.SingleColumn("sys_id"),
+		},
 		Columns: []*plugin.Column{
 			// {Name: "raw", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
 			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
@@ -134,4 +138,25 @@ func listServicenowIncidents(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	return nil, err
+}
+
+//// GET FUNCTION
+
+func getServicenowIncident(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	client, err := Connect(ctx, d)
+	if err != nil {
+		logger.Error("servicenow_incident.getServicenowIncident", "connect_error", err)
+		return nil, err
+	}
+
+	sysId := d.EqualsQualString("sys_id")
+
+	incident, err := client.GetIncident(sysId)
+	if err != nil {
+		logger.Error("servicenow_incident.getServicenowIncident", "query_error", err)
+		return nil, err
+	}
+
+	return incident.Result, err
 }

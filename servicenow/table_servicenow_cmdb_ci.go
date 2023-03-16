@@ -18,6 +18,7 @@ func tableServicenowCmdbCi() *plugin.Table {
 			Hydrate: listServicenowCmdbCis,
 		},
 		Columns: []*plugin.Column{
+			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "attested_date", Description: "", Type: proto.ColumnType_STRING},
 			{Name: "skip_sync", Description: "", Type: proto.ColumnType_STRING},
 			{Name: "operational_status", Description: "", Type: proto.ColumnType_STRING},
@@ -91,7 +92,6 @@ func tableServicenowCmdbCi() *plugin.Table {
 			{Name: "lease_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("LeaseID")},
 			{Name: "correlation_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelationID")},
 			{Name: "model_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("ModelID")},
-			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "ip_address", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("IPAddress")},
 			{Name: "dns_domain", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("DNSDomain")},
 			{Name: "sys_domain", Description: "", Type: proto.ColumnType_JSON},

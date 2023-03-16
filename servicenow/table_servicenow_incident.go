@@ -19,6 +19,7 @@ func tableServicenowIncident() *plugin.Table {
 		},
 		Columns: []*plugin.Column{
 			// {Name: "raw", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
+			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "parent", Description: "", Type: proto.ColumnType_STRING},
 			{Name: "caused_by", Description: "", Type: proto.ColumnType_STRING},
 			{Name: "watch_list", Description: "", Type: proto.ColumnType_STRING},
@@ -96,7 +97,6 @@ func tableServicenowIncident() *plugin.Table {
 			{Name: "category", Description: "", Type: proto.ColumnType_STRING},
 			{Name: "origin_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("OriginID")},
 			{Name: "made_sla", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("MadeSLA")},
-			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "problem_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("ProblemID")},
 			{Name: "sla_due", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SLADue")},
 			{Name: "correlation_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelationID")},

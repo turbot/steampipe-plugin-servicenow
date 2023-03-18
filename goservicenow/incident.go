@@ -1,7 +1,5 @@
 package goservicenow
 
-import "fmt"
-
 type IncidentListResult struct {
 	Result []Incident `json:"result"`
 }
@@ -138,19 +136,11 @@ type Incident struct {
 func (c *Client) GetIncidents(limit int) (*IncidentListResult, error) {
 	var result IncidentListResult
 	err := c.listTable("incident", limit, &result)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return &result, nil
+	return &result, err
 }
 
 func (c *Client) GetIncident(sysId string) (*IncidentListResult, error) {
 	var result IncidentListResult
 	err := c.getTable("incident", sysId, &result)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return &result, nil
+	return &result, err
 }

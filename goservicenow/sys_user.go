@@ -1,7 +1,5 @@
 package goservicenow
 
-import "fmt"
-
 type SysUserListResult struct {
 	Result []SysUser `json:"result"`
 }
@@ -79,19 +77,11 @@ type SysUser struct {
 func (c *Client) GetSysUsers(limit int) (*SysUserListResult, error) {
 	var result SysUserListResult
 	err := c.listTable("sys_user", limit, &result)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return &result, nil
+	return &result, err
 }
 
 func (c *Client) GetSysUser(sysId string) (*SysUserGetResult, error) {
 	var result SysUserGetResult
 	err := c.getTable("sys_user", sysId, &result)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return &result, nil
+	return &result, err
 }

@@ -1,7 +1,5 @@
 package goservicenow
 
-import "fmt"
-
 type CmdbCIListResult struct {
 	Result []CmdbCI `json:"result"`
 }
@@ -106,19 +104,11 @@ type CmdbCI struct {
 func (c *Client) GetCmdbCIs(limit int) (*CmdbCIListResult, error) {
 	var result CmdbCIListResult
 	err := c.listTable("cmdb_ci", limit, &result)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return &result, nil
+	return &result, err
 }
 
 func (c *Client) GetCmdbCI(sysId string) (*CmdbCIGetResult, error) {
 	var result CmdbCIGetResult
 	err := c.getTable("cmdb_ci", sysId, &result)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return &result, nil
+	return &result, err
 }

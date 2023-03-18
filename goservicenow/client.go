@@ -116,7 +116,6 @@ func (c *Client) listTable(tableName string, limit int, result interface{}) erro
 		fmt.Println(err)
 		return err
 	}
-	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -124,7 +123,8 @@ func (c *Client) listTable(tableName string, limit int, result interface{}) erro
 		return err
 	}
 
-	// var result Incident
+	defer res.Body.Close()
+
 	if err := json.Unmarshal(body, &result); err != nil {
 		fmt.Println("Can not unmarshal JSON", err.Error())
 		return err
@@ -137,7 +137,6 @@ func (c *Client) getTable(tableName string, sysId string, result interface{}) er
 	method := "GET"
 
 	client := &http.Client{}
-	// req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", endpointUrl.String(), sysId), nil)
 	req, err := http.NewRequest(method, endpointUrl.String(), nil)
 
 	if err != nil {
@@ -160,9 +159,6 @@ func (c *Client) getTable(tableName string, sysId string, result interface{}) er
 
 	defer res.Body.Close()
 
-	// fmt.Println(string(body))
-
-	// var result Incident
 	if err := json.Unmarshal(body, &result); err != nil {
 		fmt.Println("Can not unmarshal JSON", err.Error())
 		return err

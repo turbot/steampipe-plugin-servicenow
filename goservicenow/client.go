@@ -149,11 +149,12 @@ func (c *Client) doAPI(req http.Request, result interface{}) error {
 	return nil
 }
 
-func (c *Client) listArticles(limit int, result interface{}) error {
+func (c *Client) listArticles(limit, offset int, result interface{}) error {
 	endpointUrl := c.baseURL.JoinPath("api/sn_km_api/knowledge/articles")
 
 	queryUrl := endpointUrl.Query()
 	queryUrl.Add("limit", strconv.Itoa(limit))
+	queryUrl.Add("offset", strconv.Itoa(offset))
 	endpointUrl.RawQuery = queryUrl.Encode()
 
 	method := "GET"

@@ -63,9 +63,9 @@ type ArticleResult struct {
 	Articles []Article `json:"articles"`
 }
 
-func (c *Client) GetArticles(limit int) (*ArticleListResponse, error) {
+func (c *Client) GetArticles(limit, offset int) (*ArticleListResponse, error) {
 	var result ArticleListResponse
-	err := c.listArticles(limit, &result)
+	err := c.listArticles(limit, offset, &result)
 	return &result, err
 }
 

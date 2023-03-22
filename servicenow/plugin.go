@@ -20,9 +20,10 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
-			"servicenow_cmdb_ci":  tableServicenowCmdbCi(),
-			"servicenow_incident": tableServicenowIncident(),
-			"servicenow_sys_user": tableServicenowSysUser(),
+			"servicenow_cmdb_ci":                     tableServicenowCmdbCi(),
+			"servicenow_incident":                    tableServicenowIncident(),
+			"servicenow_sys_user":                    tableServicenowSysUser(),
+			"servicenow_sn_km_api_knowledge_article": tableServicenowSnKmApiKnowledgeArticle(),
 		},
 	}
 

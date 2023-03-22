@@ -101,51 +101,29 @@ func authenticate(config Config, resp interface{}) (statusCode int, err error) {
 func (c *Client) listTable(tableName string, limit int, result interface{}) error {
 	endpointUrl := c.baseURL.JoinPath(fmt.Sprintf("api/now/table/%s", tableName))
 	method := "GET"
-
-	client := &http.Client{}
 	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
-
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
-
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	defer res.Body.Close()
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Can not unmarshal JSON", err.Error())
-		return err
-	}
-	return nil
+	return c.doAPI(*req, result)
 }
 
 func (c *Client) getTable(tableName string, sysId string, result interface{}) error {
 	endpointUrl := c.baseURL.JoinPath(fmt.Sprintf("api/now/table/%s/%s", tableName, sysId))
 	method := "GET"
-
-	client := &http.Client{}
 	req, err := http.NewRequest(method, endpointUrl.String(), nil)
-
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
+	return c.doAPI(*req, result)
+}
 
-	res, err := client.Do(req)
+func (c *Client) doAPI(req http.Request, result interface{}) error {
+	client := &http.Client{}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.servicenowToken))
+	res, err := client.Do(&req)
 	if err != nil {
 		fmt.Println(err)
 		return err

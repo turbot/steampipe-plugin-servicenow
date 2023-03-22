@@ -100,8 +100,13 @@ func authenticate(config Config, resp interface{}) (statusCode int, err error) {
 
 func (c *Client) listTable(tableName string, limit int, result interface{}) error {
 	endpointUrl := c.baseURL.JoinPath(fmt.Sprintf("api/now/table/%s", tableName))
+
+	queryUrl := endpointUrl.Query()
+	queryUrl.Add("sysparm_limit", strconv.Itoa(limit))
+	endpointUrl.RawQuery = queryUrl.Encode()
+
 	method := "GET"
-	req, err := http.NewRequest(method, fmt.Sprintf("%s?sysparm_limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -146,8 +151,13 @@ func (c *Client) doAPI(req http.Request, result interface{}) error {
 
 func (c *Client) listArticles(limit int, result interface{}) error {
 	endpointUrl := c.baseURL.JoinPath("api/sn_km_api/knowledge/articles")
+
+	queryUrl := endpointUrl.Query()
+	queryUrl.Add("limit", strconv.Itoa(limit))
+	endpointUrl.RawQuery = queryUrl.Encode()
+
 	method := "GET"
-	req, err := http.NewRequest(method, fmt.Sprintf("%s?limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
 	if err != nil {
 		fmt.Println(err)
 		return err

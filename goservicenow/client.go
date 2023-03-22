@@ -144,6 +144,28 @@ func (c *Client) doAPI(req http.Request, result interface{}) error {
 	return nil
 }
 
+func (c *Client) listArticles(limit int, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath("api/sn_km_api/knowledge/articles")
+	method := "GET"
+	req, err := http.NewRequest(method, fmt.Sprintf("%s?limit=%s", endpointUrl.String(), strconv.Itoa(limit)), nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return c.doAPI(*req, result)
+}
+
+func (c *Client) getArticle(sysId string, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath("api/sn_km_api/knowledge/articles").JoinPath(sysId)
+	method := "GET"
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return c.doAPI(*req, result)
+}
+
 type HTTPError struct {
 	Code    int
 	Message string

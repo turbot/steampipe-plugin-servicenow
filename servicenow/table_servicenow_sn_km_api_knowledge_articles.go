@@ -50,18 +50,34 @@ func listServicenowSnKmApiKnowledgeArticles(ctx context.Context, d *plugin.Query
 		return nil, err
 	}
 
-	articlesResponse, err := client.GetArticles(10)
-	if err != nil {
-		logger.Error("servicenow_sn_km_api_knowledge_article.listServicenowSnKmApiKnowledgeArticles", "query_error", err)
-		return nil, err
-	}
-	for _, article := range articlesResponse.Result.Articles {
-		d.StreamListItem(ctx, article)
-
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
+	offset := 0
+	limit := 30
+	if d.QueryContext.Limit != nil {
+		pgLimit := int(*d.QueryContext.Limit)
+		if pgLimit < limit {
+			limit = pgLimit
 		}
+	}
+
+	for {
+		returnedObject, err := client.GetArticles(limit, offset)
+		totalReturned := len(returnedObject.Result.Articles)
+		if err != nil {
+			logger.Error("servicenow_sn_km_api_knowledge_article.listServicenowSnKmApiKnowledgeArticles", "query_error", err)
+			return nil, err
+		}
+		for _, article := range returnedObject.Result.Articles {
+			d.StreamListItem(ctx, article)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+		if totalReturned < limit {
+			break
+		}
+		offset += limit
 	}
 	return nil, err
 }

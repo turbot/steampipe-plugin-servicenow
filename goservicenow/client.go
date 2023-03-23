@@ -177,6 +177,34 @@ func (c *Client) getArticle(sysId string, result interface{}) error {
 	return c.doAPI(*req, result)
 }
 
+func (c *Client) listConsumers(limit, offset int, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath("api/now/consumer")
+
+	queryUrl := endpointUrl.Query()
+	queryUrl.Add("sysparm_limit", strconv.Itoa(limit))
+	queryUrl.Add("sysparm_offset", strconv.Itoa(offset))
+	endpointUrl.RawQuery = queryUrl.Encode()
+
+	method := "GET"
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return c.doAPI(*req, result)
+}
+
+func (c *Client) getConsumer(sysId string, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath("api/now/consumer").JoinPath(sysId)
+	method := "GET"
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return c.doAPI(*req, result)
+}
+
 type HTTPError struct {
 	Code    int
 	Message string

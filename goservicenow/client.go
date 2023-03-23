@@ -205,6 +205,34 @@ func (c *Client) getConsumer(sysId string, result interface{}) error {
 	return c.doAPI(*req, result)
 }
 
+func (c *Client) listContacts(limit, offset int, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath("api/now/contact")
+
+	queryUrl := endpointUrl.Query()
+	queryUrl.Add("sysparm_limit", strconv.Itoa(limit))
+	queryUrl.Add("sysparm_offset", strconv.Itoa(offset))
+	endpointUrl.RawQuery = queryUrl.Encode()
+
+	method := "GET"
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return c.doAPI(*req, result)
+}
+
+func (c *Client) getContact(sysId string, result interface{}) error {
+	endpointUrl := c.baseURL.JoinPath("api/now/contact").JoinPath(sysId)
+	method := "GET"
+	req, err := http.NewRequest(method, endpointUrl.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return c.doAPI(*req, result)
+}
+
 type HTTPError struct {
 	Code    int
 	Message string

@@ -25,6 +25,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"servicenow_sys_user":                    tableServicenowSysUser(),
 			"servicenow_sn_km_api_knowledge_article": tableServicenowSnKmApiKnowledgeArticle(),
 			"servicenow_now_consumer":                tableServicenowNowConsumer(),
+			"servicenow_now_contact":                 tableServicenowNowContact(),
 		},
 	}
 

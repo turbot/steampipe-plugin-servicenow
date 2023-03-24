@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
 
 //// TABLE DEFINITION
@@ -92,12 +93,13 @@ func listServicenowSysUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	sysUsersResponse, err := client.GetSysUsers(10)
+	var response model.SysUserListResult
+	err = client.ListTable(model.SysUserTableName, 10, &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.listServicenowSysUsers", "query_error", err)
 		return nil, err
 	}
-	for _, sysUser := range sysUsersResponse.Result {
+	for _, sysUser := range response.Result {
 		d.StreamListItem(ctx, sysUser)
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -121,11 +123,11 @@ func getServicenowSysUser(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	sysId := d.EqualsQualString("sys_id")
 
-	sysUser, err := client.GetSysUser(sysId)
+	var response model.SysUserGetResult
+	err = client.GetTable(model.SysUserTableName, sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.getServicenowSysUser", "query_error", err)
 		return nil, err
 	}
-
-	return sysUser.Result, err
+	return &response, err
 }

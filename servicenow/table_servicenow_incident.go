@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
 
 //// TABLE DEFINITION
@@ -123,12 +124,13 @@ func listServicenowIncidents(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	incidentsResponse, err := client.GetIncidents(10)
+	var response model.IncidentListResult
+	err = client.ListTable(model.IncidentTableName, 10, &response)
 	if err != nil {
 		logger.Error("servicenow_incident.listServicenowIncidents", "query_error", err)
 		return nil, err
 	}
-	for _, incident := range incidentsResponse.Result {
+	for _, incident := range response.Result {
 		d.StreamListItem(ctx, incident)
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -152,11 +154,11 @@ func getServicenowIncident(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	sysId := d.EqualsQualString("sys_id")
 
-	incident, err := client.GetIncident(sysId)
+	var response model.IncidentListResult
+	err = client.GetTable(model.IncidentTableName, sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_incident.getServicenowIncident", "query_error", err)
 		return nil, err
 	}
-
-	return incident.Result, err
+	return &response, err
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
 
 //// TABLE DEFINITION
@@ -113,12 +114,13 @@ func listServicenowCmdbCis(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	cmdb_cisResponse, err := client.GetCmdbCIs(10)
+	var response model.CmdbCIListResult
+	err = client.ListTable(model.IncidentTableName, 10, &response)
 	if err != nil {
 		logger.Error("servicenow_cmdb_ci.listServicenowCmdbCis", "query_error", err)
 		return nil, err
 	}
-	for _, cmdb_ci := range cmdb_cisResponse.Result {
+	for _, cmdb_ci := range response.Result {
 		d.StreamListItem(ctx, cmdb_ci)
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -142,11 +144,11 @@ func getServicenowCmdbCi(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	sysId := d.EqualsQualString("sys_id")
 
-	sysUser, err := client.GetCmdbCI(sysId)
+	var response model.CmdbCIGetResult
+	err = client.GetTable(model.CmdbCITableName, sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.getServicenowCmdbCi", "query_error", err)
 		return nil, err
 	}
-
-	return sysUser.Result, err
+	return &response, err
 }

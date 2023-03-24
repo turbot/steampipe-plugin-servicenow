@@ -3,8 +3,8 @@ package servicenow
 import (
 	"context"
 
+	"github.com/turbot/go-servicenow/goservicenow"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-servicenow/goservicenow"
 )
 
 func Connect(ctx context.Context, d *plugin.QueryData) (*goservicenow.Client, error) {

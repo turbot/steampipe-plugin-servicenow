@@ -4,6 +4,8 @@ go 1.19
 
 require github.com/turbot/steampipe-plugin-sdk/v5 v5.2.0
 
+require github.com/turbot/go-servicenow v0.0.1
+
 require (
 	cloud.google.com/go v0.65.0 // indirect
 	cloud.google.com/go/storage v1.10.0 // indirect

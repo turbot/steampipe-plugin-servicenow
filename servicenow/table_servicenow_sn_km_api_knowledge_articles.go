@@ -60,7 +60,7 @@ func listServicenowSnKmApiKnowledgeArticles(ctx context.Context, d *plugin.Query
 	}
 
 	for {
-		returnedObject, err := client.GetArticles(limit, offset)
+		returnedObject, err := client.SnKmApiKnowledgeArticles.List(limit, offset)
 		totalReturned := len(returnedObject.Result.Articles)
 		if err != nil {
 			logger.Error("servicenow_sn_km_api_knowledge_article.listServicenowSnKmApiKnowledgeArticles", "query_error", err)
@@ -94,7 +94,7 @@ func getServicenowSnKmApiKnowledgeArticles(ctx context.Context, d *plugin.QueryD
 
 	sysId := d.EqualsQualString("sys_id")
 
-	article, err := client.GetArticle(sysId)
+	article, err := client.SnKmApiKnowledgeArticles.Read(sysId)
 	if err != nil {
 		logger.Error("servicenow_sn_km_api_knowledge_article.getServicenowSnKmApiKnowledgeArticles", "query_error", err)
 		return nil, err

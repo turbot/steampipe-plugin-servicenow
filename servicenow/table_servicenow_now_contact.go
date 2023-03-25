@@ -111,7 +111,7 @@ func listServicenowNowContacts(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	for {
-		returnedObject, err := client.GetContacts(limit, offset)
+		returnedObject, err := client.NowContact.List(limit, offset)
 		totalReturned := len(returnedObject.Result)
 		if err != nil {
 			logger.Error("servicenow_now_contact.listServicenowNowContacts", "query_error", err)
@@ -145,7 +145,7 @@ func getServicenowNowContacts(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	sysId := d.EqualsQualString("sys_id")
 
-	returnedObject, err := client.GetContact(sysId)
+	returnedObject, err := client.NowContact.Read(sysId)
 	if err != nil {
 		logger.Error("servicenow_now_contact.getServicenowNowContacts", "query_error", err)
 		return nil, err

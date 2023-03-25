@@ -94,7 +94,7 @@ func listServicenowSysUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	var response model.SysUserListResult
-	err = client.ListTable(model.SysUserTableName, 10, &response)
+	err = client.NowTable.List(model.SysUserTableName, 10, &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.listServicenowSysUsers", "query_error", err)
 		return nil, err
@@ -124,7 +124,7 @@ func getServicenowSysUser(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	sysId := d.EqualsQualString("sys_id")
 
 	var response model.SysUserGetResult
-	err = client.GetTable(model.SysUserTableName, sysId, &response)
+	err = client.NowTable.Read(model.SysUserTableName, sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.getServicenowSysUser", "query_error", err)
 		return nil, err

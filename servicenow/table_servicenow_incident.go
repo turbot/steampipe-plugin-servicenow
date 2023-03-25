@@ -125,7 +125,7 @@ func listServicenowIncidents(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	var response model.IncidentListResult
-	err = client.ListTable(model.IncidentTableName, 10, &response)
+	err = client.NowTable.List(model.IncidentTableName, 10, &response)
 	if err != nil {
 		logger.Error("servicenow_incident.listServicenowIncidents", "query_error", err)
 		return nil, err
@@ -155,7 +155,7 @@ func getServicenowIncident(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	sysId := d.EqualsQualString("sys_id")
 
 	var response model.IncidentListResult
-	err = client.GetTable(model.IncidentTableName, sysId, &response)
+	err = client.NowTable.Read(model.IncidentTableName, sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_incident.getServicenowIncident", "query_error", err)
 		return nil, err

@@ -115,7 +115,7 @@ func listServicenowCmdbCis(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	var response model.CmdbCIListResult
-	err = client.ListTable(model.IncidentTableName, 10, &response)
+	err = client.NowTable.List(model.IncidentTableName, 10, &response)
 	if err != nil {
 		logger.Error("servicenow_cmdb_ci.listServicenowCmdbCis", "query_error", err)
 		return nil, err
@@ -145,7 +145,7 @@ func getServicenowCmdbCi(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	sysId := d.EqualsQualString("sys_id")
 
 	var response model.CmdbCIGetResult
-	err = client.GetTable(model.CmdbCITableName, sysId, &response)
+	err = client.NowTable.Read(model.CmdbCITableName, sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.getServicenowCmdbCi", "query_error", err)
 		return nil, err

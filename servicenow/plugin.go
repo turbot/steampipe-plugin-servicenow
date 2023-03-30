@@ -2,12 +2,15 @@ package servicenow
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"sync"
 
 	"github.com/iancoleman/strcase"
+	"github.com/turbot/go-servicenow/servicenow"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
 
 const pluginName = "steampipe-plugin-servicenow"
@@ -35,7 +38,6 @@ type dynamicMap struct {
 	servicenowColumns map[string]string
 }
 
-// type TableMapFunc      func(ctx context.Context, d *TableMapData) (map[string]*Table, error)
 func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[string]*plugin.Table, error) {
 	// If unable to connect to servicenow instance, log warning and abort dynamic table creation
 	client, err := ConnectUncached(ctx, d.Connection)
@@ -57,7 +59,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		for _, st := range staticTables {
 			go func(staticTable string) {
 				defer wgd.Done()
-				dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, nil, staticTable, nil)
+				dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, nil)
 				// dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, p)
 				mapLock.Lock()
 				dynamicColumnsMap[staticTable] = dynamicMap{dynamicCols, dynamicKeyColumns, servicenowCols}
@@ -102,8 +104,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 			plugin.Logger(ctx).Debug("servicenow.pluginTableDefinitions", "object_name", name, "table_name", tableName)
 			ctx = context.WithValue(ctx, contextKey("PluginTableName"), tableName)
 			ctx = context.WithValue(ctx, contextKey("ServicenowTableName"), name)
-			table := generateDynamicTables(ctx, nil)
-			// table := generateDynamicTables(ctx, p)
+			table := generateDynamicTables(ctx, d)
 			// Ignore if the requested Servicenow object is not present.
 			if table != nil {
 				tables[tableName] = table
@@ -114,23 +115,18 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	return tables, nil
 }
 
-func generateDynamicTables(ctx context.Context, p *plugin.Plugin) *plugin.Table {
-
-	// client, err := connectRaw(ctx, p.ConnectionManager, p.Connection)
-	// if err != nil {
-	// 	plugin.Logger(ctx).Error("servicenow.generateDynamicTables", "connection_error", err)
-	// 	return nil
-	// }
+func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.Table {
+	logger := plugin.Logger(ctx)
+	logger.Warn("generateDynamicTables")
+	client, err := ConnectUncached(ctx, d.Connection)
+	if err != nil {
+		logger.Error("servicenow.generateDynamicTables", "connection_error", err)
+		return nil
+	}
 
 	// // Get the query for the metric (required)
 	// servicenowTableName := ctx.Value(contextKey("ServicenowTableName")).(string)
 	// tableName := ctx.Value(contextKey("PluginTableName")).(string)
-
-	// sObjectMeta := client.SObject(servicenowTableName).Describe()
-	// if sObjectMeta == nil {
-	// 	plugin.Logger(ctx).Error("servicenow.generateDynamicTables", fmt.Sprintf("Object %s not found in servicenow", servicenowTableName))
-	// 	return nil
-	// }
 
 	// // Top columns
 	// cols := []*plugin.Column{}
@@ -138,34 +134,15 @@ func generateDynamicTables(ctx context.Context, p *plugin.Plugin) *plugin.Table 
 	// // Key columns
 	// keyColumns := plugin.KeyColumnSlice{}
 
-	// servicenowObjectMetadata := *sObjectMeta
-	// servicenowObjectMetadataAsByte, err := json.Marshal(servicenowObjectMetadata["fields"])
-	// if err != nil {
-	// 	plugin.Logger(ctx).Error("servicenow.generateDynamicTables", "json marshal error", err)
-	// }
+	servicenowObjectFields, err := getTableColumns(client)
+	if err != nil {
+		logger.Error("servicenow.generateDynamicTables", "connection_error", err)
+	}
+	for k, v := range servicenowObjectFields {
+		logger.Warn(k, v)
+	}
 
-	// servicenowObjectFields := []map[string]interface{}{}
-	// err = json.Unmarshal(servicenowObjectMetadataAsByte, &servicenowObjectFields)
-	// if err != nil {
-	// 	plugin.Logger(ctx).Error("servicenow.generateDynamicTables", "json unmarshal error", err)
-	// }
-
-	// for _, properties := range servicenowObjectFields {
-	// 	if properties["name"] == nil {
-	// 		continue
-	// 	}
-	// 	fieldName := properties["name"].(string)
-	// 	compoundFieldName := properties["compoundFieldName"]
-	// 	if compoundFieldName != nil && compoundFieldName.(string) != fieldName {
-	// 		continue
-	// 	}
-
-	// 	if properties["soapType"] == nil {
-	// 		continue
-	// 	}
-	// 	soapType := strings.Split((properties["soapType"]).(string), ":")
-	// 	fieldType := soapType[len(soapType)-1]
-
+	// for fieldName, fieldType := range servicenowObjectFields {
 	// 	// Column dynamic generation
 	// 	// Don't convert to snake case since field names can have underscores in
 	// 	// them, so it's impossible to convert from snake case back to camel case
@@ -180,7 +157,7 @@ func generateDynamicTables(ctx context.Context, p *plugin.Plugin) *plugin.Table 
 
 	// 	column := plugin.Column{
 	// 		Name:        columnFieldName,
-	// 		Description: fmt.Sprintf("%s.", properties["label"].(string)),
+	// 		Description: fmt.Sprintf("%s.", fieldName),
 	// 		Transform:   transform.FromP(getFieldFromSObjectMap, fieldName),
 	// 	}
 	// 	// Adding column type in the map to help in qual handling
@@ -210,8 +187,8 @@ func generateDynamicTables(ctx context.Context, p *plugin.Plugin) *plugin.Table 
 	// }
 
 	// Table := plugin.Table{
-	// 	Name:        tableName,
-	// 	Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
+	// 	Name: tableName,
+	// 	// Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
 	// 	List: &plugin.ListConfig{
 	// 		KeyColumns: keyColumns,
 	// 		Hydrate:    listServicenowObjectsByTable(servicenowTableName, servicenowCols),
@@ -225,4 +202,36 @@ func generateDynamicTables(ctx context.Context, p *plugin.Plugin) *plugin.Table 
 
 	// return &Table
 	return nil
+}
+
+func getTableColumns(client *servicenow.ServiceNow) (map[string]string, error) {
+	columns := map[string]string{}
+	limit := 1000
+	offset := 0
+	for {
+		var returned model.SysDictionaryListResult
+		err := client.NowTable.List(model.SysDictionaryTableName, limit, offset, "name=incident", &returned)
+		if err != nil {
+			return nil, err
+		}
+		totalReturned := len(returned.Result)
+		for _, returnedObject := range returned.Result {
+			if returnedObject.Element == "" {
+				continue
+			}
+			var typeGlide model.SysGlideObjectListResult
+			err := client.NowTable.List(model.SysGlideObjectTableName, 1, 0, fmt.Sprintf("name=%s", returnedObject.InternalType.Value), &typeGlide)
+			if err != nil {
+				return nil, err
+			}
+			columns[returnedObject.Element] = typeGlide.Result[0].ScalarType
+		}
+
+		if totalReturned < limit {
+			break
+		}
+		offset += limit
+	}
+
+	return columns, nil
 }

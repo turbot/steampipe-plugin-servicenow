@@ -35,7 +35,7 @@ func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return client, nil
 }
 
-func ConnectUncached(ctx context.Context, conn *plugin.Connection) (any, error) {
+func ConnectUncached(ctx context.Context, conn *plugin.Connection) (*servicenow.ServiceNow, error) {
 	servicenowConfig := GetConfig(conn)
 
 	client, err := servicenow.New(servicenow.Config{

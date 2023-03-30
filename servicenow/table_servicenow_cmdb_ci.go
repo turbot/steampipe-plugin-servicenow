@@ -115,7 +115,7 @@ func listServicenowCmdbCis(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	var response model.CmdbCIListResult
-	err = client.NowTable.List(model.IncidentTableName, 10, &response)
+	err = client.NowTable.List(model.IncidentTableName, 10, 0, "", &response)
 	if err != nil {
 		logger.Error("servicenow_cmdb_ci.listServicenowCmdbCis", "query_error", err)
 		return nil, err

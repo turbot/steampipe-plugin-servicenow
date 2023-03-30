@@ -125,7 +125,7 @@ func listServicenowIncidents(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	var response model.IncidentListResult
-	err = client.NowTable.List(model.IncidentTableName, 10, &response)
+	err = client.NowTable.List(model.IncidentTableName, 10, 0, "", &response)
 	if err != nil {
 		logger.Error("servicenow_incident.listServicenowIncidents", "query_error", err)
 		return nil, err

@@ -94,7 +94,7 @@ func listServicenowSysUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	var response model.SysUserListResult
-	err = client.NowTable.List(model.SysUserTableName, 10, &response)
+	err = client.NowTable.List(model.SysUserTableName, 10, 0, "", &response)
 	if err != nil {
 		logger.Error("servicenow_sys_user.listServicenowSysUsers", "query_error", err)
 		return nil, err

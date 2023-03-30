@@ -2,9 +2,13 @@ module github.com/turbot/steampipe-plugin-servicenow
 
 go 1.19
 
-require github.com/turbot/steampipe-plugin-sdk/v5 v5.2.0
+replace github.com/turbot/go-servicenow => ../../forks/go-servicenow
 
-require github.com/turbot/go-servicenow v0.0.1
+require (
+	github.com/iancoleman/strcase v0.2.0
+	github.com/turbot/go-servicenow v0.0.1
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.3.0
+)
 
 require (
 	cloud.google.com/go v0.65.0 // indirect
@@ -47,7 +51,6 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.15.0 // indirect
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
-	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.11.2 // indirect

@@ -6,11 +6,12 @@ import (
 )
 
 type servicenowConfig struct {
-	InstanceURL  *string `cty:"instance_url"`
-	ClientID     *string `cty:"client_id"`
-	ClientSecret *string `cty:"client_secret"`
-	Username     *string `cty:"username"`
-	Password     *string `cty:"password"`
+	InstanceURL  *string   `cty:"instance_url"`
+	ClientID     *string   `cty:"client_id"`
+	ClientSecret *string   `cty:"client_secret"`
+	Username     *string   `cty:"username"`
+	Password     *string   `cty:"password"`
+	Objects      *[]string `cty:"objects"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -28,6 +29,12 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"password": {
 		Type: schema.TypeString,
+	},
+	"objects": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{
+			Type: schema.TypeString,
+		},
 	},
 }
 

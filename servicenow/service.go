@@ -34,3 +34,17 @@ func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	return client, nil
 }
+
+func ConnectUncached(ctx context.Context, conn *plugin.Connection) (any, error) {
+	servicenowConfig := GetConfig(conn)
+
+	client, err := servicenow.New(servicenow.Config{
+		InstanceURL:  *servicenowConfig.InstanceURL,
+		GrantType:    "password",
+		ClientID:     *servicenowConfig.ClientID,
+		ClientSecret: *servicenowConfig.ClientSecret,
+		Username:     *servicenowConfig.Username,
+		Password:     *servicenowConfig.Password,
+	})
+	return client, err
+}

@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/iancoleman/strcase"
 	"github.com/turbot/go-servicenow/servicenow"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 	"github.com/turbot/steampipe-plugin-servicenow/model"
@@ -124,84 +126,80 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 		return nil
 	}
 
-	// // Get the query for the metric (required)
-	// servicenowTableName := ctx.Value(contextKey("ServicenowTableName")).(string)
-	// tableName := ctx.Value(contextKey("PluginTableName")).(string)
+	// Get the query for the metric (required)
+	servicenowTableName := ctx.Value(contextKey("ServicenowTableName")).(string)
+	tableName := ctx.Value(contextKey("PluginTableName")).(string)
 
-	// // Top columns
-	// cols := []*plugin.Column{}
-	// servicenowCols := map[string]string{}
-	// // Key columns
-	// keyColumns := plugin.KeyColumnSlice{}
+	// Top columns
+	cols := []*plugin.Column{}
+	servicenowCols := map[string]string{}
+	// Key columns
+	keyColumns := plugin.KeyColumnSlice{}
 
 	servicenowObjectFields, err := getTableColumns(client)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "connection_error", err)
 	}
-	for k, v := range servicenowObjectFields {
-		logger.Warn(k, v)
+
+	for fieldName, fieldType := range servicenowObjectFields {
+		// Column dynamic generation
+		// Don't convert to snake case since field names can have underscores in
+		// them, so it's impossible to convert from snake case back to camel case
+		// to match the original field name. Also, if we convert to snake case,
+		// custom fields like "TestField" and "Test_Field" will result in duplicates
+		var columnFieldName string
+		if strings.HasSuffix(fieldName, "__c") {
+			columnFieldName = strings.ToLower(fieldName)
+		} else {
+			columnFieldName = strcase.ToSnake(fieldName)
+		}
+
+		column := plugin.Column{
+			Name:        columnFieldName,
+			Description: fmt.Sprintf("%s.", fieldName),
+			Transform:   transform.FromP(getFieldFromSObjectMap, fieldName),
+		}
+		// Adding column type in the map to help in qual handling
+		servicenowCols[columnFieldName] = fieldType
+
+		// Set column type based on the `soapType` from servicenow schema
+		switch fieldType {
+		case "string", "GUID":
+			column.Type = proto.ColumnType_STRING
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
+		case "date", "datetime", "time":
+			column.Type = proto.ColumnType_TIMESTAMP
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
+		case "decimal", "float":
+			column.Type = proto.ColumnType_BOOL
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
+		case "double":
+			column.Type = proto.ColumnType_DOUBLE
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
+		case "int", "integer", "longint":
+			column.Type = proto.ColumnType_INT
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
+		default:
+			column.Type = proto.ColumnType_JSON
+		}
+		cols = append(cols, &column)
 	}
 
-	// for fieldName, fieldType := range servicenowObjectFields {
-	// 	// Column dynamic generation
-	// 	// Don't convert to snake case since field names can have underscores in
-	// 	// them, so it's impossible to convert from snake case back to camel case
-	// 	// to match the original field name. Also, if we convert to snake case,
-	// 	// custom fields like "TestField" and "Test_Field" will result in duplicates
-	// 	var columnFieldName string
-	// 	if strings.HasSuffix(fieldName, "__c") {
-	// 		columnFieldName = strings.ToLower(fieldName)
-	// 	} else {
-	// 		columnFieldName = strcase.ToSnake(fieldName)
-	// 	}
+	Table := plugin.Table{
+		Name: tableName,
+		// Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
+		List: &plugin.ListConfig{
+			KeyColumns: keyColumns,
+			Hydrate:    listServicenowObjectsByTable(servicenowTableName, servicenowCols),
+		},
+		// Get: &plugin.GetConfig{
+		// 	KeyColumns: plugin.SingleColumn("id"),
+		// 	Hydrate:    getServicenowObjectbyID(servicenowTableName),
+		// },
+		Columns: cols,
+	}
 
-	// 	column := plugin.Column{
-	// 		Name:        columnFieldName,
-	// 		Description: fmt.Sprintf("%s.", fieldName),
-	// 		Transform:   transform.FromP(getFieldFromSObjectMap, fieldName),
-	// 	}
-	// 	// Adding column type in the map to help in qual handling
-	// 	servicenowCols[columnFieldName] = fieldType
-
-	// 	// Set column type based on the `soapType` from servicenow schema
-	// 	switch fieldType {
-	// 	case "string", "ID":
-	// 		column.Type = proto.ColumnType_STRING
-	// 		keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
-	// 	case "date", "dateTime":
-	// 		column.Type = proto.ColumnType_TIMESTAMP
-	// 		keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
-	// 	case "boolean":
-	// 		column.Type = proto.ColumnType_BOOL
-	// 		keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
-	// 	case "double":
-	// 		column.Type = proto.ColumnType_DOUBLE
-	// 		keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
-	// 	case "int":
-	// 		column.Type = proto.ColumnType_INT
-	// 		keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
-	// 	default:
-	// 		column.Type = proto.ColumnType_JSON
-	// 	}
-	// 	cols = append(cols, &column)
-	// }
-
-	// Table := plugin.Table{
-	// 	Name: tableName,
-	// 	// Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
-	// 	List: &plugin.ListConfig{
-	// 		KeyColumns: keyColumns,
-	// 		Hydrate:    listServicenowObjectsByTable(servicenowTableName, servicenowCols),
-	// 	},
-	// 	Get: &plugin.GetConfig{
-	// 		KeyColumns: plugin.SingleColumn("id"),
-	// 		Hydrate:    getServicenowObjectbyID(servicenowTableName),
-	// 	},
-	// 	Columns: cols,
-	// }
-
-	// return &Table
-	return nil
+	return &Table
 }
 
 func getTableColumns(client *servicenow.ServiceNow) (map[string]string, error) {

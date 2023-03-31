@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/iancoleman/strcase"
@@ -48,28 +47,28 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		plugin.Logger(ctx).Warn("servicenow.pluginTableDefinitions", "connection_error: unable to generate dynamic tables because of invalid steampipe servicenow configuration", err)
 	}
 
-	staticTables := []string{}
+	// staticTables := []string{}
 
-	dynamicColumnsMap := map[string]dynamicMap{}
-	var mapLock sync.Mutex
+	// dynamicColumnsMap := map[string]dynamicMap{}
+	// var mapLock sync.Mutex
 
-	// If Servicenow client was obtained, don't generate dynamic columns for
-	// defined static tables
-	if client != nil {
-		var wgd sync.WaitGroup
-		wgd.Add(len(staticTables))
-		for _, st := range staticTables {
-			go func(staticTable string) {
-				defer wgd.Done()
-				dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, nil)
-				// dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, p)
-				mapLock.Lock()
-				dynamicColumnsMap[staticTable] = dynamicMap{dynamicCols, dynamicKeyColumns, servicenowCols}
-				defer mapLock.Unlock()
-			}(st)
-		}
-		wgd.Wait()
-	}
+	// // If Servicenow client was obtained, don't generate dynamic columns for
+	// // defined static tables
+	// if client != nil {
+	// 	var wgd sync.WaitGroup
+	// 	wgd.Add(len(staticTables))
+	// 	for _, st := range staticTables {
+	// 		go func(staticTable string) {
+	// 			defer wgd.Done()
+	// 			dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, nil)
+	// 			// dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, p)
+	// 			mapLock.Lock()
+	// 			dynamicColumnsMap[staticTable] = dynamicMap{dynamicCols, dynamicKeyColumns, servicenowCols}
+	// 			defer mapLock.Unlock()
+	// 		}(st)
+	// 	}
+	// 	wgd.Wait()
+	// }
 
 	// Initialize tables with static tables with static and dynamic columns(if credentials are set)
 	tables := map[string]*plugin.Table{}
@@ -142,17 +141,7 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 	}
 
 	for fieldName, fieldType := range servicenowObjectFields {
-		// Column dynamic generation
-		// Don't convert to snake case since field names can have underscores in
-		// them, so it's impossible to convert from snake case back to camel case
-		// to match the original field name. Also, if we convert to snake case,
-		// custom fields like "TestField" and "Test_Field" will result in duplicates
-		var columnFieldName string
-		if strings.HasSuffix(fieldName, "__c") {
-			columnFieldName = strings.ToLower(fieldName)
-		} else {
-			columnFieldName = strcase.ToSnake(fieldName)
-		}
+		columnFieldName := fieldName
 
 		column := plugin.Column{
 			Name:        columnFieldName,
@@ -164,12 +153,13 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 
 		// Set column type based on the `soapType` from servicenow schema
 		switch fieldType {
-		case "string", "GUID":
+		case "string", "GUID", "date", "datetime", "time":
+			// case "string", "GUID":
 			column.Type = proto.ColumnType_STRING
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
-		case "date", "datetime", "time":
-			column.Type = proto.ColumnType_TIMESTAMP
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
+		// case "date", "datetime", "time":
+		// 	column.Type = proto.ColumnType_TIMESTAMP
+		// 	keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "decimal", "float":
 			column.Type = proto.ColumnType_BOOL
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
@@ -182,6 +172,8 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 		default:
 			column.Type = proto.ColumnType_JSON
 		}
+		// column.Type = proto.ColumnType_STRING
+
 		cols = append(cols, &column)
 	}
 
@@ -189,14 +181,17 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 		Name: tableName,
 		// Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
 		List: &plugin.ListConfig{
-			KeyColumns: keyColumns,
-			Hydrate:    listServicenowObjectsByTable(servicenowTableName, servicenowCols),
+			// KeyColumns: keyColumns,
+			Hydrate: listServicenowObjectsByTable(servicenowTableName, servicenowCols),
 		},
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns: plugin.SingleColumn("id"),
 		// 	Hydrate:    getServicenowObjectbyID(servicenowTableName),
 		// },
 		Columns: cols,
+		// Columns: []*plugin.Column{
+		// 	{Name: "raw", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
+		// },
 	}
 
 	return &Table

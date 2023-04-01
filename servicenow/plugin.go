@@ -135,7 +135,7 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 	// Key columns
 	keyColumns := plugin.KeyColumnSlice{}
 
-	servicenowObjectFields, err := getTableColumns(client)
+	servicenowObjectFields, err := getTableColumns(client, servicenowTableName)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "connection_error", err)
 	}
@@ -153,17 +153,16 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 
 		// Set column type based on the `soapType` from servicenow schema
 		switch fieldType {
-		case "string", "GUID", "date", "datetime", "time":
-			// case "string", "GUID":
+		case "string", "date", "datetime", "time":
 			column.Type = proto.ColumnType_STRING
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
 		// case "date", "datetime", "time":
 		// 	column.Type = proto.ColumnType_TIMESTAMP
 		// 	keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
-		case "decimal", "float":
+		case "boolean":
 			column.Type = proto.ColumnType_BOOL
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
-		case "double":
+		case "double", "decimal", "float":
 			column.Type = proto.ColumnType_DOUBLE
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "int", "integer", "longint":
@@ -197,13 +196,13 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 	return &Table
 }
 
-func getTableColumns(client *servicenow.ServiceNow) (map[string]string, error) {
+func getTableColumns(client *servicenow.ServiceNow, tableName string) (map[string]string, error) {
 	columns := map[string]string{}
 	limit := 1000
 	offset := 0
 	for {
 		var returned model.SysDictionaryListResult
-		err := client.NowTable.List(model.SysDictionaryTableName, limit, offset, "name=incident", &returned)
+		err := client.NowTable.List(model.SysDictionaryTableName, limit, offset, fmt.Sprintf("name=%s", tableName), &returned)
 		if err != nil {
 			return nil, err
 		}

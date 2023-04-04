@@ -183,10 +183,10 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 			// KeyColumns: keyColumns,
 			Hydrate: listServicenowObjectsByTable(servicenowTableName, servicenowCols),
 		},
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns: plugin.SingleColumn("id"),
-		// 	Hydrate:    getServicenowObjectbyID(servicenowTableName),
-		// },
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("sys_id"),
+			Hydrate:    getServicenowObjectbyID(servicenowTableName),
+		},
 		Columns: cols,
 		// Columns: []*plugin.Column{
 		// 	{Name: "raw", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},

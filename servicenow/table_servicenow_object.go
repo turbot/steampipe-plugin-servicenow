@@ -7,11 +7,15 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-//// LIST HYDRATE FUNCTION
-
 type tableListResult struct {
 	Result []map[string]interface{} `json:"result"`
 }
+
+type tableGetResult struct {
+	Result map[string]interface{} `json:"result"`
+}
+
+//// LIST HYDRATE FUNCTION
 
 func listServicenowObjectsByTable(tableName string, servicenowCols map[string]string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -52,38 +56,25 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 
 func getServicenowObjectbyID(tableName string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-		// plugin.Logger(ctx).Info("servicenow.getServicenowObjectbyID", "Table_Name", d.Table.Name)
-		// id := d.KeyColumnQualString("id")
-		// if strings.TrimSpace(id) == "" {
-		// 	return nil, nil
-		// }
+		logger := plugin.Logger(ctx)
+		logger.Info("servicenow.getServicenowObjectbyID", "Table_Name", d.Table.Name)
+		sysId := d.EqualsQualString("sys_id")
 
-		// client, err := connect(ctx, d)
-		// if err != nil {
-		// 	plugin.Logger(ctx).Error("servicenow.getServicenowObjectbyID", "connection error", err)
-		// 	return nil, err
-		// }
-		// if client == nil {
-		// 	plugin.Logger(ctx).Error("servicenow.getServicenowObjectbyID", "client_not_found: unable to generate dynamic tables because of invalid steampipe servicenow configuration", err)
-		// 	return nil, fmt.Errorf("servicenow.getServicenowObjectbyID: client_not_found, unable to query table %s because of invalid steampipe servicenow configuration", d.Table.Name)
-		// }
+		client, err := Connect(ctx, d)
+		if err != nil {
+			logger.Error("servicenow.getServicenowObjectbyID", "connect_error", err)
+			return nil, err
+		}
 
-		// obj := client.SObject(tableName).Get(id)
-		// if obj == nil {
-		// 	// Object doesn't exist, handle the error
-		// 	plugin.Logger(ctx).Warn("servicenow.getServicenowObjectbyID", fmt.Sprintf("%s with id \"%s\" not found", tableName, id))
-		// 	return nil, nil
-		// }
+		var response tableGetResult
+		err = client.NowTable.Read(tableName, sysId, &response)
+		if err != nil {
+			logger.Error("servicenow_incident.getServicenowIncident", "query_error", err)
+			return nil, err
+		}
 
-		// object := new(map[string]interface{})
-		// err = decodeQueryResult(ctx, obj, object)
-		// if err != nil {
-		// 	plugin.Logger(ctx).Error("servicenow.getServicenowObjectbyID", "result decoding error", err)
-		// 	return nil, err
-		// }
-
-		// return *object, nil
-		return nil, nil
+		sanitizeTableObject(response.Result)
+		return response.Result, nil
 	}
 }
 
@@ -99,4 +90,13 @@ func getFieldFromSObjectMapByColumnName(ctx context.Context, d *transform.Transf
 	servicenowColumnName := getServicenowColumnName(d.ColumnName)
 	ls := d.HydrateItem.(map[string]interface{})
 	return ls[servicenowColumnName], nil
+}
+
+func sanitizeTableObject(tableObject map[string]interface{}) {
+	// Check if the value is an empty string, if it is, replace it with nil
+	for key, value := range tableObject {
+		if str, ok := value.(string); ok && str == "" {
+			tableObject[key] = nil
+		}
+	}
 }

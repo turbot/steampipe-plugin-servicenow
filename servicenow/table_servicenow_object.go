@@ -26,29 +26,40 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 			return nil, err
 		}
 
-		var response tableListResult
-		err = client.NowTable.List(tableName, 10, 0, "", &response)
-		if err != nil {
-			logger.Error("servicenow_incident.listServicenowIncidents", "query_error", err)
-			return nil, err
+		offset := 0
+		limit := 30
+		if d.QueryContext.Limit != nil {
+			pgLimit := int(*d.QueryContext.Limit)
+			if pgLimit < limit {
+				limit = pgLimit
+			}
 		}
 
-		for _, element := range response.Result {
-			// Check if the value is an empty string, if it is, replace it with nil
-			for key, value := range element {
-				if str, ok := value.(string); ok && str == "" {
-					element[key] = nil
+		for {
+			var response tableListResult
+			err = client.NowTable.List(tableName, limit, offset, "", &response)
+			if err != nil {
+				logger.Error("servicenow_incident.listServicenowIncidents", "query_error", err)
+				return nil, err
+			}
+			totalReturned := len(response.Result)
+
+			for _, element := range response.Result {
+				sanitizeTableObject(element)
+
+				d.StreamListItem(ctx, element)
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
 				}
 			}
 
-			d.StreamListItem(ctx, element)
-			// Context can be cancelled due to manual cancellation or the limit has been hit
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
+			if totalReturned < limit {
+				break
 			}
+			offset += limit
 		}
-
-		return nil, nil
+		return nil, err
 	}
 }
 

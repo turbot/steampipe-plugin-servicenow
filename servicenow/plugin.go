@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/iancoleman/strcase"
 	"github.com/turbot/go-servicenow/servicenow"
@@ -153,12 +154,13 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 
 		// Set column type based on the `soapType` from servicenow schema
 		switch fieldType {
-		case "string", "date", "datetime", "time":
+		case "string":
 			column.Type = proto.ColumnType_STRING
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
-		// case "date", "datetime", "time":
-		// 	column.Type = proto.ColumnType_TIMESTAMP
-		// 	keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
+		case "date", "datetime", "time":
+			column.Type = proto.ColumnType_TIMESTAMP
+			column.Transform.Transform(parseTimestamp)
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "boolean":
 			column.Type = proto.ColumnType_BOOL
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
@@ -226,4 +228,13 @@ func getTableColumns(client *servicenow.ServiceNow, tableName string) (map[strin
 	}
 
 	return columns, nil
+}
+
+func parseTimestamp(ctx context.Context, input *transform.TransformData) (interface{}, error) {
+	if input.Value == nil {
+		return nil, nil
+	}
+	timeStr := input.Value.(string)
+	return time.Parse("2006-01-02 15:04:05", timeStr)
+	// return time.Parse(time.RFC3339, timeStr)
 }

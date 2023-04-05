@@ -6,4 +6,6 @@ connection "servicenow" {
   client_secret = ""
   username = "admin"
   password = ""
+
+  objects = ["sys_user", "sys_user_group", "incident", "customer_contact"]
 }

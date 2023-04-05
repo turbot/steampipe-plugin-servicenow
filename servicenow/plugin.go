@@ -138,7 +138,7 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 
 	servicenowObjectFields, err := getTableColumns(client, servicenowTableName)
 	if err != nil {
-		logger.Error("servicenow.generateDynamicTables", "connection_error", err)
+		logger.Error("servicenow.generateDynamicTables", "column_build_error", err)
 	}
 
 	for fieldName, fieldType := range servicenowObjectFields {
@@ -154,12 +154,16 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 
 		// Set column type based on the `soapType` from servicenow schema
 		switch fieldType {
-		case "string":
+		case "string", "glide_date", "date", "time":
 			column.Type = proto.ColumnType_STRING
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
-		case "date", "datetime", "time":
+		case "glide_time":
+			column.Type = proto.ColumnType_STRING
+			column.Transform.Transform(parseGlideTime)
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
+		case "datetime":
 			column.Type = proto.ColumnType_TIMESTAMP
-			column.Transform.Transform(parseTimestamp)
+			column.Transform.Transform(parseDateTime)
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "boolean":
 			column.Type = proto.ColumnType_BOOL
@@ -173,7 +177,6 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 		default:
 			column.Type = proto.ColumnType_JSON
 		}
-		// column.Type = proto.ColumnType_STRING
 
 		cols = append(cols, &column)
 	}
@@ -213,6 +216,10 @@ func getTableColumns(client *servicenow.ServiceNow, tableName string) (map[strin
 			if returnedObject.Element == "" {
 				continue
 			}
+			if returnedObject.InternalType.Value == "glide_time" {
+				columns[returnedObject.Element] = "glide_time"
+				continue
+			}
 			var typeGlide model.SysGlideObjectListResult
 			err := client.NowTable.List(model.SysGlideObjectTableName, 1, 0, fmt.Sprintf("name=%s", returnedObject.InternalType.Value), &typeGlide)
 			if err != nil {
@@ -230,11 +237,21 @@ func getTableColumns(client *servicenow.ServiceNow, tableName string) (map[strin
 	return columns, nil
 }
 
-func parseTimestamp(ctx context.Context, input *transform.TransformData) (interface{}, error) {
+func parseGlideTime(ctx context.Context, input *transform.TransformData) (interface{}, error) {
 	if input.Value == nil {
 		return nil, nil
 	}
 	timeStr := input.Value.(string)
-	return time.Parse("2006-01-02 15:04:05", timeStr)
-	// return time.Parse(time.RFC3339, timeStr)
+	t, err := time.Parse(time.DateTime, timeStr)
+	if err != nil {
+		return nil, err
+	}
+	return t.Format(time.TimeOnly), nil
+}
+func parseDateTime(ctx context.Context, input *transform.TransformData) (interface{}, error) {
+	if input.Value == nil {
+		return nil, nil
+	}
+	timeStr := input.Value.(string)
+	return time.Parse(time.DateTime, timeStr)
 }

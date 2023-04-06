@@ -190,9 +190,16 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 		cols = append(cols, &column)
 	}
 
+	serviceNowTableObject, err := getTableObject(client, servicenowTableName)
+	if err != nil {
+		logger.Error("servicenow.generateDynamicTables", "table_documentation_error", err)
+		return nil
+	}
+
 	Table := plugin.Table{
 		Name: tableName,
 		// Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
+		Description: fmt.Sprintf("%s.", serviceNowTableObject.Label),
 		List: &plugin.ListConfig{
 			// KeyColumns: keyColumns,
 			Hydrate: listServicenowObjectsByTable(servicenowTableName, servicenowCols),
@@ -208,6 +215,18 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 	}
 
 	return &Table
+}
+
+func getTableObject(client *servicenow.ServiceNow, tableName string) (*model.SysDbObject, error) {
+	var returned model.SysDbObjectListResult
+	err := client.NowTable.List(model.SysDbObjectTableName, 1, 0, fmt.Sprintf("name=%s", tableName), &returned)
+	if err != nil {
+		return nil, err
+	}
+	if len(returned.Result) == 0 {
+		return nil, fmt.Errorf("Table %s not found on ServiceNow.", tableName)
+	}
+	return &returned.Result[0], nil
 }
 
 func getTableColumnsDescriptions(client *servicenow.ServiceNow, tableName string) (map[string]model.SysDocumentation, error) {

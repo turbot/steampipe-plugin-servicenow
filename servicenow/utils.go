@@ -13,10 +13,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
-func connect(ctx context.Context, d *plugin.QueryData) (*servicenow.ServiceNow, error) {
-	return connectRaw(ctx, d.ConnectionManager, d.Connection)
-}
-
 // connect:: returns servicenow client after authentication
 func connectRaw(ctx context.Context, cm *connection.Manager, c *plugin.Connection) (*servicenow.ServiceNow, error) {
 	// // Load connection from cache, which preserves throttling protection etc

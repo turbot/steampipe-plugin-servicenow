@@ -141,12 +141,21 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 		logger.Error("servicenow.generateDynamicTables", "column_build_error", err)
 	}
 
+	fieldsDescriptions, err := getTableColumnsDescriptions(client, servicenowTableName)
+	if err != nil {
+		logger.Error("servicenow.generateDynamicTables", "column_documentation_error", err)
+	}
+
 	for fieldName, fieldType := range servicenowObjectFields {
 		columnFieldName := fieldName
 
+		columnDescription := fieldsDescriptions[columnFieldName].Hint
+		if columnDescription == "" {
+			columnDescription = fieldsDescriptions[columnFieldName].Label
+		}
 		column := plugin.Column{
 			Name:        columnFieldName,
-			Description: fmt.Sprintf("%s.", fieldName),
+			Description: fmt.Sprintf("%s.", columnDescription),
 			Transform:   transform.FromP(getFieldFromSObjectMap, fieldName),
 		}
 		// Adding column type in the map to help in qual handling
@@ -199,6 +208,30 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData) *plugin.
 	}
 
 	return &Table
+}
+
+func getTableColumnsDescriptions(client *servicenow.ServiceNow, tableName string) (map[string]model.SysDocumentation, error) {
+	columnsDescriptions := map[string]model.SysDocumentation{}
+	limit := 1000
+	offset := 0
+	for {
+		var returned model.SysDocumentationListResult
+		err := client.NowTable.List(model.SysDocumentationTableName, limit, offset, fmt.Sprintf("name=%s", tableName), &returned)
+		if err != nil {
+			return nil, err
+		}
+		totalReturned := len(returned.Result)
+		for _, returnedObject := range returned.Result {
+			columnsDescriptions[returnedObject.Element] = returnedObject
+		}
+
+		if totalReturned < limit {
+			break
+		}
+		offset += limit
+	}
+
+	return columnsDescriptions, nil
 }
 
 func getTableColumns(client *servicenow.ServiceNow, tableName string) (map[string]string, error) {

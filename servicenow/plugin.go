@@ -294,16 +294,16 @@ func parseGlideTime(ctx context.Context, input *transform.TransformData) (interf
 		return nil, nil
 	}
 	timeStr := input.Value.(string)
-	t, err := time.Parse(time.DateTime, timeStr)
+	t, err := time.Parse("2006-01-02 15:04:05", timeStr)
 	if err != nil {
 		return nil, err
 	}
-	return t.Format(time.TimeOnly), nil
+	return t.Format("15:04:05"), nil
 }
 func parseDateTime(ctx context.Context, input *transform.TransformData) (interface{}, error) {
 	if input.Value == nil {
 		return nil, nil
 	}
 	timeStr := input.Value.(string)
-	return time.Parse(time.DateTime, timeStr)
+	return time.Parse("2006-01-02 15:04:05", timeStr)
 }

@@ -13,8 +13,9 @@ import (
 
 func tableServicenowIncident() *plugin.Table {
 	return &plugin.Table{
-		Name:        "servicenow_incident",
-		Description: "",
+		Name:             "servicenow_incident",
+		DefaultTransform: transform.FromCamel(),
+		Description:      "",
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowIncidents,
 		},
@@ -105,11 +106,11 @@ func tableServicenowIncident() *plugin.Table {
 			{Name: "problem_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("ProblemID")},
 			{Name: "sla_due", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SLADue")},
 			{Name: "correlation_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelationID")},
-			{Name: "resolved_by", Description: "", Type: proto.ColumnType_JSON},
-			{Name: "opened_by", Description: "", Type: proto.ColumnType_JSON},
-			{Name: "sys_domain", Description: "", Type: proto.ColumnType_JSON},
-			{Name: "caller_id", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromField("CorrelatCallerIDionID")},
-			{Name: "closed_by", Description: "", Type: proto.ColumnType_JSON},
+			{Name: "resolved_by", Description: "", Type: proto.ColumnType_STRING},
+			{Name: "opened_by", Description: "", Type: proto.ColumnType_STRING},
+			{Name: "sys_domain", Description: "", Type: proto.ColumnType_STRING},
+			{Name: "caller_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelatCallerIDionID")},
+			{Name: "closed_by", Description: "", Type: proto.ColumnType_STRING},
 		},
 	}
 }

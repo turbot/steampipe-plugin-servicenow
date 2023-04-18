@@ -11,51 +11,43 @@ type CmdbCIGetResult struct {
 }
 
 type CmdbCI struct {
-	AttestedDate      string `json:"attested_date"`
-	SkipSync          string `json:"skip_sync"`
-	OperationalStatus string `json:"operational_status"`
-	SysUpdatedOn      string `json:"sys_updated_on"`
-	AttestationScore  string `json:"attestation_score"`
-	DiscoverySource   string `json:"discovery_source"`
-	FirstDiscovered   string `json:"first_discovered"`
-	SysUpdatedBy      string `json:"sys_updated_by"`
-	DueIn             string `json:"due_in"`
-	SysCreatedOn      string `json:"sys_created_on"`
-	SysDomain         struct {
-		Link  string `json:"link"`
-		Value string `json:"value"`
-	} `json:"sys_domain"`
-	InstallDate        string `json:"install_date"`
-	GlAccount          string `json:"gl_account"`
-	InvoiceNumber      string `json:"invoice_number"`
-	SysCreatedBy       string `json:"sys_created_by"`
-	WarrantyExpiration string `json:"warranty_expiration"`
-	AssetTag           string `json:"asset_tag"`
-	Fqdn               string `json:"fqdn"`
-	ChangeControl      string `json:"change_control"`
-	OwnedBy            string `json:"owned_by"`
-	CheckedOut         string `json:"checked_out"`
-	SysDomainPath      string `json:"sys_domain_path"`
-	BusinessUnit       string `json:"business_unit"`
-	DeliveryDate       string `json:"delivery_date"`
-	// TODO: MaintenanceSchedule is struct when filled, but string when empty
-	// MaintenanceSchedule  string `json:"maintenance_schedule"`
-	// MaintenanceSchedule struct {
-	// 	Link  string `json:"link"`
-	// 	Value string `json:"value"`
-	// } `json:"maintenance_schedule"`
-	InstallStatus        string `json:"install_status"`
-	CostCenter           string `json:"cost_center"`
-	AttestedBy           string `json:"attested_by"`
-	SupportedBy          string `json:"supported_by"`
-	DNSDomain            string `json:"dns_domain"`
-	Name                 string `json:"name"`
-	Assigned             string `json:"assigned"`
-	LifeCycleStage       string `json:"life_cycle_stage"`
-	PurchaseDate         string `json:"purchase_date"`
-	Subcategory          string `json:"subcategory"`
-	ShortDescription     string `json:"short_description"`
-	AssignmentGroup      string `json:"assignment_group"`
+	AttestedDate        string `json:"attested_date"`
+	SkipSync            string `json:"skip_sync"`
+	OperationalStatus   string `json:"operational_status"`
+	SysUpdatedOn        string `json:"sys_updated_on"`
+	AttestationScore    string `json:"attestation_score"`
+	DiscoverySource     string `json:"discovery_source"`
+	FirstDiscovered     string `json:"first_discovered"`
+	SysUpdatedBy        string `json:"sys_updated_by"`
+	DueIn               string `json:"due_in"`
+	SysCreatedOn        string `json:"sys_created_on"`
+	SysDomain           string `json:"sys_domain"`
+	InstallDate         string `json:"install_date"`
+	GlAccount           string `json:"gl_account"`
+	InvoiceNumber       string `json:"invoice_number"`
+	SysCreatedBy        string `json:"sys_created_by"`
+	WarrantyExpiration  string `json:"warranty_expiration"`
+	AssetTag            string `json:"asset_tag"`
+	Fqdn                string `json:"fqdn"`
+	ChangeControl       string `json:"change_control"`
+	OwnedBy             string `json:"owned_by"`
+	CheckedOut          string `json:"checked_out"`
+	SysDomainPath       string `json:"sys_domain_path"`
+	BusinessUnit        string `json:"business_unit"`
+	DeliveryDate        string `json:"delivery_date"`
+	MaintenanceSchedule string `json:"maintenance_schedule"`
+	InstallStatus       string `json:"install_status"`
+	CostCenter          string `json:"cost_center"`
+	AttestedBy          string `json:"attested_by"`
+	SupportedBy         string `json:"supported_by"`
+	DNSDomain           string `json:"dns_domain"`
+	Name                string `json:"name"`
+	Assigned            string `json:"assigned"`
+	LifeCycleStage      string `json:"life_cycle_stage"`
+	PurchaseDate        string `json:"purchase_date"`
+	Subcategory         string `json:"subcategory"`
+	ShortDescription    string `json:"short_description"`
+	// AssignmentGroup      interface{} `json:"assignment_group"`
 	ManagedBy            string `json:"managed_by"`
 	ManagedByGroup       string `json:"managed_by_group"`
 	CanPrint             string `json:"can_print"`
@@ -88,17 +80,16 @@ type CmdbCI struct {
 	CostCc               string `json:"cost_cc"`
 	OrderDate            string `json:"order_date"`
 	Schedule             string `json:"schedule"`
-	// SupportGroup         string `json:"support_group"`
-	Environment   string `json:"environment"`
-	Due           string `json:"due"`
-	Attested      string `json:"attested"`
-	CorrelationID string `json:"correlation_id"`
-	Unverified    string `json:"unverified"`
-	Attributes    string `json:"attributes"`
-	// TODO: Location is struct when filled, but string when empty
-	// Location             string `json:"location"`
-	// Asset      string `json:"asset"`
-	Category   string `json:"category"`
-	FaultCount string `json:"fault_count"`
-	LeaseID    string `json:"lease_id"`
+	SupportGroup         string `json:"support_group"`
+	Environment          string `json:"environment"`
+	Due                  string `json:"due"`
+	Attested             string `json:"attested"`
+	CorrelationID        string `json:"correlation_id"`
+	Unverified           string `json:"unverified"`
+	Attributes           string `json:"attributes"`
+	Location             string `json:"location"`
+	Asset                string `json:"asset"`
+	Category             string `json:"category"`
+	FaultCount           string `json:"fault_count"`
+	LeaseID              string `json:"lease_id"`
 }

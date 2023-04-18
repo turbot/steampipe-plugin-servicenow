@@ -13,8 +13,9 @@ import (
 
 func tableServicenowCmdbCi() *plugin.Table {
 	return &plugin.Table{
-		Name:        "servicenow_cmdb_ci",
-		Description: "",
+		Name:             "servicenow_cmdb_ci",
+		DefaultTransform: transform.FromCamel(),
+		Description:      "",
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowCmdbCis,
 		},
@@ -99,7 +100,7 @@ func tableServicenowCmdbCi() *plugin.Table {
 			{Name: "model_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("ModelID")},
 			{Name: "ip_address", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("IPAddress")},
 			{Name: "dns_domain", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("DNSDomain")},
-			{Name: "sys_domain", Description: "", Type: proto.ColumnType_JSON},
+			{Name: "sys_domain", Description: "", Type: proto.ColumnType_STRING},
 		},
 	}
 }
@@ -115,7 +116,7 @@ func listServicenowCmdbCis(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	var response model.CmdbCIListResult
-	err = client.NowTable.List(model.IncidentTableName, 10, 0, "", &response)
+	err = client.NowTable.List(model.CmdbCITableName, 10, 0, "", &response)
 	if err != nil {
 		logger.Error("servicenow_cmdb_ci.listServicenowCmdbCis", "query_error", err)
 		return nil, err

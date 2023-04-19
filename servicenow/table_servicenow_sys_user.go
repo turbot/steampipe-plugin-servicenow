@@ -13,7 +13,7 @@ const SysUserTableName = "sys_user"
 func tableServicenowSysUser() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_user",
-		Description: "",
+		Description: "User.",
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowObjectsByTable(SysUserTableName, nil),
 		},

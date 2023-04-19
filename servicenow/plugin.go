@@ -72,7 +72,11 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	// }
 
 	// Initialize tables with static tables with static and dynamic columns(if credentials are set)
-	tables := map[string]*plugin.Table{}
+	tables := map[string]*plugin.Table{
+		"servicenow_cmdb_ci":  tableServicenowCmdbCi(),
+		"servicenow_incident": tableServicenowIncident(),
+		"servicenow_sys_user": tableServicenowSysUser(),
+	}
 
 	var re = regexp.MustCompile(`\d+`)
 	var substitution = ``

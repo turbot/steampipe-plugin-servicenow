@@ -1,165 +1,53 @@
 package servicenow
 
 import (
-	"context"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
-	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
+
+const IncidentTableName = "incident"
 
 //// TABLE DEFINITION
 
 func tableServicenowIncident() *plugin.Table {
 	return &plugin.Table{
 		Name:             "servicenow_incident",
+		Description:      "Incident.",
 		DefaultTransform: transform.FromCamel(),
-		Description:      "",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowIncidents,
+			Hydrate: listServicenowObjectsByTable(IncidentTableName, nil),
 		},
 		Get: &plugin.GetConfig{
-			Hydrate:    getServicenowIncident,
+			Hydrate:    getServicenowObjectbyID(IncidentTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
 		Columns: []*plugin.Column{
-			// {Name: "raw", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
-			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
-			{Name: "parent", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "caused_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "watch_list", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "upon_reject", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_updated_on", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "child_incidents", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "hold_reason", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "origin_table", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "task_effective_number", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "approval_history", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "number", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "user_input", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_created_on", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_updated_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "state", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "route_reason", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_created_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "knowledge", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "order", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "calendar_stc", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "closed_at", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "delivery_plan", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "contract", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "impact", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "active", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "work_notes_list", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "business_impact", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "priority", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_domain_path", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "rfc", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "time_worked", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "expected_start", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "opened_at", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "business_duration", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "group_list", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "work_end", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "reopened_time", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "resolved_at", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "approval_set", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "subcategory", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "work_notes", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "universal_request", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "short_description", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "close_code", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "correlation_display", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "delivery_task", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "work_start", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "additional_assignee_list", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "business_stc", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "cause", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "description", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "calendar_duration", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "close_notes", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "notify", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "service_offering", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_class_name", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "follow_up", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "parent_incident", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "contact_type", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "reopened_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "incident_state", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "urgency", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "reassignment_count", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "activity_due", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "severity", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "comments", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "approval", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "comments_and_work_notes", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "due_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_mod_count", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "reopen_count", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_tags", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "escalation", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "upon_approval", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "category", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "origin_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("OriginID")},
-			{Name: "made_sla", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("MadeSLA")},
-			{Name: "problem_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("ProblemID")},
-			{Name: "sla_due", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SLADue")},
-			{Name: "correlation_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelationID")},
-			{Name: "resolved_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "opened_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_domain", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "caller_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelatCallerIDionID")},
-			{Name: "closed_by", Description: "", Type: proto.ColumnType_STRING},
+			{Name: "business_stc", Description: "Business time elapsed (stored in seconds) before Incident was resolved.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "business_stc")},
+			{Name: "calendar_stc", Description: "Time elapsed (stored in seconds) before Incident was Resolved.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "calendar_stc")},
+			{Name: "child_incidents", Description: "Number of child Incidents related to this Problem.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "child_incidents")},
+			{Name: "hold_reason", Description: "On hold reason.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "hold_reason")},
+			{Name: "incident_state", Description: "Workflow state of the incident.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "incident_state")},
+			{Name: "notify", Description: "Notify.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "notify")},
+			{Name: "reopen_count", Description: "Number of times Incident state has changed from Resolved or Closed to another state.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "reopen_count")},
+			{Name: "severity", Description: "Severity.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "severity")},
+			{Name: "caller_id", Description: "Person who reported or is affected by this incident.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "caller_id")},
+			{Name: "caused_by", Description: "Change request that caused the incident.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "caused_by")},
+			{Name: "origin_id", Description: "Origin.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "origin_id")},
+			{Name: "parent_incident", Description: "Can be used to collect Incidents for the same root issue.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "parent_incident")},
+			{Name: "problem_id", Description: "Related problem, if one exists.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "problem_id")},
+			{Name: "reopened_by", Description: "Last reopened by.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "reopened_by")},
+			{Name: "resolved_by", Description: "Resolved by.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "resolved_by")},
+			{Name: "rfc", Description: "Related change, if one exists.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "rfc")},
+			{Name: "business_impact", Description: "Business impact.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "business_impact")},
+			{Name: "category", Description: "Category.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "category")},
+			{Name: "cause", Description: "Probable cause.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "cause")},
+			{Name: "close_code", Description: "For use in reporting.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "close_code")},
+			{Name: "origin_table", Description: "Table of the Origin record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "origin_table")},
+			{Name: "subcategory", Description: "Subcategory.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "subcategory")},
+			{Name: "sys_id", Description: "Sys ID.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_id")},
+			{Name: "reopened_time", Description: "Last reopened at.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "reopened_timee").Transform(parseDateTime)},
+			{Name: "resolved_at", Description: "Resolved.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "resolved_ate").Transform(parseDateTime)},
 		},
 	}
-}
-
-//// LIST FUNCTION
-
-func listServicenowIncidents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	client, err := Connect(ctx, d)
-	if err != nil {
-		logger.Error("servicenow_incident.listServicenowIncidents", "connect_error", err)
-		return nil, err
-	}
-
-	var response model.IncidentListResult
-	err = client.NowTable.List(model.IncidentTableName, 10, 0, "", &response)
-	if err != nil {
-		logger.Error("servicenow_incident.listServicenowIncidents", "query_error", err)
-		return nil, err
-	}
-	for _, incident := range response.Result {
-		d.StreamListItem(ctx, incident)
-
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
-		}
-	}
-
-	return nil, err
-}
-
-//// GET FUNCTION
-
-func getServicenowIncident(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	client, err := Connect(ctx, d)
-	if err != nil {
-		logger.Error("servicenow_incident.getServicenowIncident", "connect_error", err)
-		return nil, err
-	}
-
-	sysId := d.EqualsQualString("sys_id")
-
-	var response model.IncidentListResult
-	err = client.NowTable.Read(model.IncidentTableName, sysId, &response)
-	if err != nil {
-		logger.Error("servicenow_incident.getServicenowIncident", "query_error", err)
-		return nil, err
-	}
-	return &response, err
 }

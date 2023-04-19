@@ -1,13 +1,12 @@
 package servicenow
 
 import (
-	"context"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
-	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
+
+const CmdbCITableName = "cmdb_ci"
 
 //// TABLE DEFINITION
 
@@ -15,141 +14,95 @@ func tableServicenowCmdbCi() *plugin.Table {
 	return &plugin.Table{
 		Name:             "servicenow_cmdb_ci",
 		DefaultTransform: transform.FromCamel(),
-		Description:      "",
+		Description:      "Configuration Item.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowCmdbCis,
+			Hydrate: listServicenowObjectsByTable(SysUserTableName, nil),
 		},
 		Get: &plugin.GetConfig{
-			Hydrate:    getServicenowCmdbCi,
+			Hydrate:    getServicenowObjectbyID(SysUserTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
 		Columns: []*plugin.Column{
-			{Name: "sys_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
-			{Name: "attested_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "skip_sync", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "operational_status", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_updated_on", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "attestation_score", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "discovery_source", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "first_discovered", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_updated_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "due_in", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_created_on", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "install_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "gl_account", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "invoice_number", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_created_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "warranty_expiration", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "asset_tag", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "fqdn", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "change_control", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "owned_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "checked_out", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_domain_path", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "business_unit", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "delivery_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "install_status", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "cost_center", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "attested_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "supported_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "name", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "assigned", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "life_cycle_stage", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "purchase_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "subcategory", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "short_description", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "assignment_group", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "managed_by", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "managed_by_group", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "can_print", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "last_discovered", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_class_name", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "manufacturer", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "po_number", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "checked_in", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_class_path", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "life_cycle_stage_status", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "mac_address", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "vendor", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "company", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "justification", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "model_number", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "department", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "assigned_to", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "start_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "comments", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "cost", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "attestation_status", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_mod_count", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "monitor", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "serial_number", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "duplicate_of", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "sys_tags", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "cost_cc", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "order_date", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "schedule", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "environment", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "due", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "attested", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "unverified", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "attributes", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "category", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "fault_count", Description: "", Type: proto.ColumnType_STRING},
-			{Name: "lease_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("LeaseID")},
-			{Name: "correlation_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("CorrelationID")},
-			{Name: "model_id", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("ModelID")},
-			{Name: "ip_address", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("IPAddress")},
-			{Name: "dns_domain", Description: "", Type: proto.ColumnType_STRING, Transform: transform.FromField("DNSDomain")},
-			{Name: "sys_domain", Description: "", Type: proto.ColumnType_STRING},
+			{Name: "asset", Description: "Asset.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "asset")},
+			{Name: "asset_tag", Description: "Asset tag.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "asset_tag")},
+			{Name: "assigned", Description: "Assigned.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "assigned").Transform(parseDateTime)},
+			{Name: "assigned_to", Description: "Assigned to.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "assigned_to")},
+			{Name: "assignment_group", Description: "Change Group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "assignment_group")},
+			{Name: "attestation_score", Description: "Attestation Score.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "attestation_score")},
+			{Name: "attestation_status", Description: "Attestation Status.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "attestation_status")},
+			{Name: "attested", Description: "Attested.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "attested")},
+			{Name: "attested_by", Description: "Attested By.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "attested_by")},
+			{Name: "attested_date", Description: "Attested Date.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "attested_date").Transform(parseDateTime)},
+			{Name: "attributes", Description: "Attributes that describe the configuration item, usually XML.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "attributes")},
+			{Name: "business_unit", Description: "Business Unit.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "business_unit")},
+			{Name: "can_print", Description: "Provides network printing service.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "can_print")},
+			{Name: "category", Description: "Category.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "category")},
+			{Name: "change_control", Description: "Approval group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "change_control")},
+			{Name: "checked_in", Description: "Checked in.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "checked_in").Transform(parseDateTime)},
+			{Name: "checked_out", Description: "Checked out.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "checked_out").Transform(parseDateTime)},
+			{Name: "comments", Description: "Comments.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "comments")},
+			{Name: "company", Description: "Company.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "company")},
+			{Name: "correlation_id", Description: "Correlation ID.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "correlation_id")},
+			{Name: "cost", Description: "Cost.", Type: proto.ColumnType_DOUBLE, Transform: transform.FromP(getFieldFromSObjectMap, "cost")},
+			{Name: "cost_cc", Description: "Cost currency.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "cost_cc")},
+			{Name: "cost_center", Description: "Cost center.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "cost_center")},
+			{Name: "delivery_date", Description: "Order received.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "delivery_date").Transform(parseDateTime)},
+			{Name: "department", Description: "Department.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "department")},
+			{Name: "discovery_source", Description: "Discovery source.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "discovery_source")},
+			{Name: "dns_domain", Description: "DNS Domain.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "dns_domain")},
+			{Name: "due", Description: "Due.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "due").Transform(parseDateTime)},
+			{Name: "due_in", Description: "Due in.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "due_in")},
+			{Name: "duplicate_of", Description: "Which CI is this a duplicate of.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "duplicate_of")},
+			{Name: "environment", Description: "Environment.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "environment")},
+			{Name: "fault_count", Description: "Fault count.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "fault_count")},
+			{Name: "first_discovered", Description: "First discovered.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "first_discovered").Transform(parseDateTime)},
+			{Name: "fqdn", Description: "Fully qualified domain name.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "fqdn")},
+			{Name: "gl_account", Description: "GL account.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "gl_account")},
+			{Name: "install_date", Description: "Installed.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "install_date").Transform(parseDateTime)},
+			{Name: "install_status", Description: "Install Status.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "install_status")},
+			{Name: "invoice_number", Description: "Invoice number.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "invoice_number")},
+			{Name: "ip_address", Description: "Context IP Address.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "ip_address")},
+			{Name: "justification", Description: "Justification.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "justification")},
+			{Name: "last_discovered", Description: "Most recent discovery.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "last_discovered").Transform(parseDateTime)},
+			{Name: "lease_id", Description: "Lease contract.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "lease_id")},
+			{Name: "life_cycle_stage", Description: "The general life cycle phase that the CI is at.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "life_cycle_stage")},
+			{Name: "life_cycle_stage_status", Description: "The specific status of a CI within its life cycle phase.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "life_cycle_stage_status")},
+			{Name: "location", Description: "Location.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "location")},
+			{Name: "mac_address", Description: "Context MAC Address.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "mac_address")},
+			{Name: "maintenance_schedule", Description: "Maintenance schedule.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "maintenance_schedule")},
+			{Name: "managed_by", Description: "Managed by.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "managed_by")},
+			{Name: "managed_by_group", Description: "Managed By Group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "managed_by_group")},
+			{Name: "manufacturer", Description: "Manufacturer.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "manufacturer")},
+			{Name: "model_id", Description: "Model ID.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "model_id")},
+			{Name: "model_number", Description: "Model number.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "model_number")},
+			{Name: "monitor", Description: "Enable monitoring of the configuration item.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "monitor")},
+			{Name: "name", Description: "Name.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "name")},
+			{Name: "operational_status", Description: "Operational status.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "operational_status")},
+			{Name: "order_date", Description: "Ordered.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "order_date").Transform(parseDateTime)},
+			{Name: "owned_by", Description: "Owned by.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "owned_by")},
+			{Name: "po_number", Description: "PO number.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "po_number")},
+			{Name: "purchase_date", Description: "Purchased.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "purchase_date")},
+			{Name: "schedule", Description: "Schedule.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "schedule")},
+			{Name: "serial_number", Description: "Serial number.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "serial_number")},
+			{Name: "short_description", Description: "Description.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "short_description")},
+			{Name: "skip_sync", Description: "Skip sync.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "skip_sync")},
+			{Name: "start_date", Description: "Start date.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "start_date").Transform(parseDateTime)},
+			{Name: "subcategory", Description: "Subcategory.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "subcategory")},
+			{Name: "support_group", Description: "Support group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "support_group")},
+			{Name: "supported_by", Description: "Supported by.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "supported_by")},
+			{Name: "sys_class_name", Description: "Class.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_class_name")},
+			{Name: "sys_class_path", Description: "Sys class path.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_class_path")},
+			{Name: "sys_created_by", Description: "Created by.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_created_by")},
+			{Name: "sys_created_on", Description: "Created.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_created_on").Transform(parseDateTime)},
+			{Name: "sys_domain", Description: "Domain. ", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "sys_domain")},
+			{Name: "sys_domain_path", Description: "Domain Path.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_domain_path")},
+			{Name: "sys_id", Description: "Sys ID.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_id")},
+			{Name: "sys_mod_count", Description: "Updates.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "sys_mod_count")},
+			{Name: "sys_updated_by", Description: "Updated by.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_by")},
+			{Name: "sys_updated_on", Description: "Updated.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_on").Transform(parseDateTime)},
+			{Name: "unverified", Description: "Requires verification.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "unverified")},
+			{Name: "vendor", Description: "Vendor. ", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "vendor")},
+			{Name: "warranty_expiration", Description: "Warranty expiration.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "warranty_expiration")},
 		},
 	}
-}
-
-//// LIST FUNCTION
-
-func listServicenowCmdbCis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	client, err := Connect(ctx, d)
-	if err != nil {
-		logger.Error("servicenow_cmdb_ci.listServicenowCmdbCis", "connect_error", err)
-		return nil, err
-	}
-
-	var response model.CmdbCIListResult
-	err = client.NowTable.List(model.CmdbCITableName, 10, 0, "", &response)
-	if err != nil {
-		logger.Error("servicenow_cmdb_ci.listServicenowCmdbCis", "query_error", err)
-		return nil, err
-	}
-	for _, cmdb_ci := range response.Result {
-		d.StreamListItem(ctx, cmdb_ci)
-
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
-		}
-	}
-
-	return nil, err
-}
-
-//// GET FUNCTION
-
-func getServicenowCmdbCi(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	client, err := Connect(ctx, d)
-	if err != nil {
-		logger.Error("servicenow_sys_user.getServicenowCmdbCi", "connect_error", err)
-		return nil, err
-	}
-
-	sysId := d.EqualsQualString("sys_id")
-
-	var response model.CmdbCIGetResult
-	err = client.NowTable.Read(model.CmdbCITableName, sysId, &response)
-	if err != nil {
-		logger.Error("servicenow_sys_user.getServicenowCmdbCi", "query_error", err)
-		return nil, err
-	}
-	return &response, err
 }

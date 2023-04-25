@@ -81,6 +81,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		"servicenow_now_consumer":                tableServicenowNowConsumer(),
 		"servicenow_sn_chg_rest_change":          tableServicenowSnChgRestChange(),
 		"servicenow_sn_chg_rest_change_model":    tableServicenowSnChgRestChangeModel(),
+		"servicenow_sn_chg_rest_change_task":     tableServicenowSnChgRestChangeTask(),
 	}
 
 	var re = regexp.MustCompile(`\d+`)

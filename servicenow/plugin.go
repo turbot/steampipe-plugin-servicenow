@@ -73,12 +73,14 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 
 	// Initialize tables with static tables with static and dynamic columns(if credentials are set)
 	tables := map[string]*plugin.Table{
-		"servicenow_cmdb_ci":            tableServicenowCmdbCi(),
-		"servicenow_incident":           tableServicenowIncident(),
-		"servicenow_sys_user":           tableServicenowSysUser(),
-		"servicenow_now_contact":        tableServicenowNowContact(),
-		"servicenow_now_consumer":       tableServicenowNowConsumer(),
-		"servicenow_sn_chg_rest_change": tableServicenowSnChgRestChange(),
+		"servicenow_cmdb_ci":                     tableServicenowCmdbCi(),
+		"servicenow_incident":                    tableServicenowIncident(),
+		"servicenow_sys_user":                    tableServicenowSysUser(),
+		"servicenow_sn_km_api_knowledge_article": tableServicenowSnKmApiKnowledgeArticle(),
+		"servicenow_now_contact":                 tableServicenowNowContact(),
+		"servicenow_now_consumer":                tableServicenowNowConsumer(),
+		"servicenow_sn_chg_rest_change":          tableServicenowSnChgRestChange(),
+		"servicenow_sn_chg_rest_change_model":    tableServicenowSnChgRestChangeModel(),
 	}
 
 	var re = regexp.MustCompile(`\d+`)

@@ -74,6 +74,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	// Initialize tables with static tables with static and dynamic columns(if credentials are set)
 	tables := map[string]*plugin.Table{
 		"servicenow_cmdb_ci":                                     tableServicenowCmdbCi(),
+		"servicenow_cmdb_ci_service":                             tableServicenowCmdbCiService(),
 		"servicenow_incident":                                    tableServicenowIncident(),
 		"servicenow_sys_user":                                    tableServicenowSysUser(),
 		"servicenow_sn_km_api_knowledge_article":                 tableServicenowSnKmApiKnowledgeArticle(),

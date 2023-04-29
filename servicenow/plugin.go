@@ -80,6 +80,8 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		"servicenow_sys_user_group":                              tableServicenowSysUserGroup(),
 		"servicenow_sys_user_grmember":                           tableServicenowSysUserGroupMember(),
 		"servicenow_sys_user_role":                               tableServicenowSysUserRole(),
+		"servicenow_sys_user_has_role":                           tableServicenowSysUserHasRole(),
+		"servicenow_sys_group_has_role":                          tableServicenowSysGroupHasRole(),
 		"servicenow_sn_km_api_knowledge_article":                 tableServicenowSnKmApiKnowledgeArticle(),
 		"servicenow_now_contact":                                 tableServicenowNowContact(),
 		"servicenow_now_consumer":                                tableServicenowNowConsumer(),

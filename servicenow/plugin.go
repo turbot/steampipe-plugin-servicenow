@@ -34,43 +34,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	return p
 }
 
-type dynamicMap struct {
-	cols              []*plugin.Column
-	keyColumns        plugin.KeyColumnSlice
-	servicenowColumns map[string]string
-}
-
 func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[string]*plugin.Table, error) {
-	// If unable to connect to servicenow instance, log warning and abort dynamic table creation
-	client, err := ConnectUncached(ctx, d.Connection)
-	if err != nil {
-		// do not abort the plugin as static table needs to be generated
-		plugin.Logger(ctx).Warn("servicenow.pluginTableDefinitions", "connection_error: unable to generate dynamic tables because of invalid steampipe servicenow configuration", err)
-	}
-
-	// staticTables := []string{}
-
-	// dynamicColumnsMap := map[string]dynamicMap{}
-	// var mapLock sync.Mutex
-
-	// // If Servicenow client was obtained, don't generate dynamic columns for
-	// // defined static tables
-	// if client != nil {
-	// 	var wgd sync.WaitGroup
-	// 	wgd.Add(len(staticTables))
-	// 	for _, st := range staticTables {
-	// 		go func(staticTable string) {
-	// 			defer wgd.Done()
-	// 			dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, nil)
-	// 			// dynamicCols, dynamicKeyColumns, servicenowCols := dynamicColumns(ctx, client, staticTable, p)
-	// 			mapLock.Lock()
-	// 			dynamicColumnsMap[staticTable] = dynamicMap{dynamicCols, dynamicKeyColumns, servicenowCols}
-	// 			defer mapLock.Unlock()
-	// 		}(st)
-	// 	}
-	// 	wgd.Wait()
-	// }
-
 	// Initialize tables with static tables with static and dynamic columns(if credentials are set)
 	tables := map[string]*plugin.Table{
 		"servicenow_cmdb_ci":                                     tableServicenowCmdbCi(),
@@ -106,11 +70,6 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 				servicenowTables = append(servicenowTables, tableName)
 			}
 		}
-	}
-
-	if client == nil {
-		plugin.Logger(ctx).Warn("servicenow.pluginTableDefinitions", "client_not_found: unable to generate dynamic tables because of invalid steampipe servicenow configuration", err)
-		return tables, nil
 	}
 
 	var wg sync.WaitGroup

@@ -75,6 +75,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	tables := map[string]*plugin.Table{
 		"servicenow_cmdb_ci":                                     tableServicenowCmdbCi(),
 		"servicenow_cmdb_ci_service":                             tableServicenowCmdbCiService(),
+		"servicenow_cmdb_ci_server":                              tableServicenowCmdbCiServer(),
 		"servicenow_incident":                                    tableServicenowIncident(),
 		"servicenow_sys_user":                                    tableServicenowSysUser(),
 		"servicenow_sys_user_group":                              tableServicenowSysUserGroup(),

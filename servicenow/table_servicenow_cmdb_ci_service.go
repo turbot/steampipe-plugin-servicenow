@@ -16,10 +16,10 @@ func tableServicenowCmdbCiService() *plugin.Table {
 		DefaultTransform: transform.FromCamel(),
 		Description:      "Configuration Item.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(SysUserTableName, nil),
+			Hydrate: listServicenowObjectsByTable(CmdbCIServiceTableName, nil),
 		},
 		Get: &plugin.GetConfig{
-			Hydrate:    getServicenowObjectbyID(SysUserTableName),
+			Hydrate:    getServicenowObjectbyID(CmdbCIServiceTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
 		Columns: []*plugin.Column{

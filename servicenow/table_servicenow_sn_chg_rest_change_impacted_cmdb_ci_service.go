@@ -23,9 +23,18 @@ func tableServicenowSnChgRestChangeImpactedCmdbCiService() *plugin.Table {
 			ParentHydrate: listServicenowSnChgRestChanges,
 		},
 		Columns: []*plugin.Column{
-			{Name: "change_sys_id", Description: "Unique identifier of the change request.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "task").NullIfEqual("")},
-			{Name: "cmdb_ci_service_sys_id", Description: "Unique identifier of the impacted CMDB CI service.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "cmdb_ci_service").NullIfEqual("")},
-			// {Name: "raw", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
+			{Name: "cmdb_ci_service_name", Description: "Cmdb Ci Service Name.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldDisplayValue, "cmdb_ci_service").NullIfEqual("")},
+			{Name: "cmdb_ci_service_sys_id", Description: "Unique identifier of the impacted CMDB CI service..", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "cmdb_ci_service").NullIfEqual("")},
+			{Name: "manually_added", Description: "Manually Added.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "manually_added").NullIfEqual("")},
+			{Name: "sys_created_by", Description: "Sys Created By.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_created_by").NullIfEqual("")},
+			{Name: "sys_created_on", Description: "Sys Created On.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldValue, "sys_created_on").NullIfEqual("").Transform(parseDateTime)},
+			{Name: "sys_id", Description: "Sys Id.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_id").NullIfEqual("")},
+			{Name: "sys_mod_count", Description: "Sys Mod Count.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldValue, "sys_mod_count").NullIfEqual("")},
+			{Name: "sys_tags", Description: "Sys Tags.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_tags").NullIfEqual("")},
+			{Name: "sys_updated_by", Description: "Sys Updated By.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_updated_by").NullIfEqual("")},
+			{Name: "sys_updated_on", Description: "Sys Updated On.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldValue, "sys_updated_on").NullIfEqual("").Transform(parseDateTime)},
+			{Name: "task_name", Description: "Task Name.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldDisplayValue, "task").NullIfEqual("")},
+			{Name: "task", Description: "Task.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "task").NullIfEqual("")},
 		},
 	}
 }

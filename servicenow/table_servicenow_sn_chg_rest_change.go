@@ -218,3 +218,9 @@ func getFieldValue(ctx context.Context, d *transform.TransformData) (interface{}
 	ls := d.HydrateItem.(map[string]map[string]interface{})
 	return ls[param]["value"], nil
 }
+
+func getFieldDisplayValue(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	param := d.Param.(string)
+	ls := d.HydrateItem.(map[string]map[string]interface{})
+	return ls[param]["display_value"], nil
+}

@@ -13,7 +13,7 @@ const SysAuditTableName = "sys_audit"
 func tableServicenowSysAudit() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_audit",
-		Description: "User Role.",
+		Description: "Table change record.",
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowObjectsByTable(SysAuditTableName, nil),
 		},

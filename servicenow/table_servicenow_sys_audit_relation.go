@@ -13,7 +13,7 @@ const SysAuditRelationTableName = "sys_audit_relation"
 func tableServicenowSysAuditRelation() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_audit_relation",
-		Description: "User Role.",
+		Description: "Table relationship audit record.",
 		List: &plugin.ListConfig{
 			Hydrate: listServicenowObjectsByTable(SysAuditRelationTableName, nil),
 		},

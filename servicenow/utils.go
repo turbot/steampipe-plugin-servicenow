@@ -236,3 +236,14 @@ func isColumnAvailable(columnName string, columns []*plugin.Column) bool {
 	}
 	return false
 }
+
+func ignoreError(errors []string) plugin.ErrorPredicateWithContext {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+		for _, pattern := range errors {
+			if strings.Contains(err.Error(), pattern) {
+				return true
+			}
+		}
+		return false
+	}
+}

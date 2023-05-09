@@ -2,6 +2,7 @@ package servicenow
 
 import (
 	"context"
+	"os"
 
 	"github.com/turbot/go-servicenow/servicenow"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -19,6 +20,28 @@ var connectCached = plugin.HydrateFunc(connectUncached).Memoize()
 
 func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (any, error) {
 	servicenowConfig := GetConfig(d.Connection)
+
+	// Overwrite config variables with any environments variables
+	instanceUrl := os.Getenv("SERVICENOW_INSTANCE_URL")
+	if instanceUrl != "" {
+		servicenowConfig.InstanceURL = &instanceUrl
+	}
+	clientId := os.Getenv("SERVICENOW_CLIENT_ID")
+	if clientId != "" {
+		servicenowConfig.ClientID = &clientId
+	}
+	clientSecret := os.Getenv("SERVICENOW_CLIENT_SECRET")
+	if clientSecret != "" {
+		servicenowConfig.ClientSecret = &clientSecret
+	}
+	username := os.Getenv("SERVICENOW_USERNAME")
+	if username != "" {
+		servicenowConfig.Username = &username
+	}
+	password := os.Getenv("SERVICENOW_PASSWORD")
+	if password != "" {
+		servicenowConfig.Password = &password
+	}
 
 	config := servicenow.Config{
 		InstanceURL: *servicenowConfig.InstanceURL,
@@ -49,6 +72,28 @@ func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func ConnectUncached(ctx context.Context, conn *plugin.Connection) (*servicenow.ServiceNow, error) {
 	servicenowConfig := GetConfig(conn)
+
+	// Overwrite config variables with any environments variables
+	instanceUrl := os.Getenv("SERVICENOW_INSTANCE_URL")
+	if instanceUrl != "" {
+		servicenowConfig.InstanceURL = &instanceUrl
+	}
+	clientId := os.Getenv("SERVICENOW_CLIENT_ID")
+	if clientId != "" {
+		servicenowConfig.ClientID = &clientId
+	}
+	clientSecret := os.Getenv("SERVICENOW_CLIENT_SECRET")
+	if clientSecret != "" {
+		servicenowConfig.ClientSecret = &clientSecret
+	}
+	username := os.Getenv("SERVICENOW_USERNAME")
+	if username != "" {
+		servicenowConfig.Username = &username
+	}
+	password := os.Getenv("SERVICENOW_PASSWORD")
+	if password != "" {
+		servicenowConfig.Password = &password
+	}
 
 	config := servicenow.Config{
 		InstanceURL: *servicenowConfig.InstanceURL,

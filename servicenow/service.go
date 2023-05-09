@@ -20,14 +20,26 @@ var connectCached = plugin.HydrateFunc(connectUncached).Memoize()
 func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (any, error) {
 	servicenowConfig := GetConfig(d.Connection)
 
-	client, err := servicenow.New(servicenow.Config{
-		InstanceURL:  *servicenowConfig.InstanceURL,
-		GrantType:    "password",
-		ClientID:     *servicenowConfig.ClientID,
-		ClientSecret: *servicenowConfig.ClientSecret,
-		Username:     *servicenowConfig.Username,
-		Password:     *servicenowConfig.Password,
-	})
+	config := servicenow.Config{
+		InstanceURL: *servicenowConfig.InstanceURL,
+		BasicAuth:   isBasicAuth(servicenowConfig),
+		GrantType:   "password",
+	}
+
+	if servicenowConfig.ClientID != nil {
+		config.ClientID = *servicenowConfig.ClientID
+	}
+	if servicenowConfig.ClientSecret != nil {
+		config.ClientSecret = *servicenowConfig.ClientSecret
+	}
+	if servicenowConfig.Username != nil {
+		config.Username = *servicenowConfig.Username
+	}
+	if servicenowConfig.Password != nil {
+		config.Password = *servicenowConfig.Password
+	}
+
+	client, err := servicenow.New(config)
 	if err != nil {
 		return nil, err
 	}
@@ -38,13 +50,36 @@ func connectUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func ConnectUncached(ctx context.Context, conn *plugin.Connection) (*servicenow.ServiceNow, error) {
 	servicenowConfig := GetConfig(conn)
 
-	client, err := servicenow.New(servicenow.Config{
-		InstanceURL:  *servicenowConfig.InstanceURL,
-		GrantType:    "password",
-		ClientID:     *servicenowConfig.ClientID,
-		ClientSecret: *servicenowConfig.ClientSecret,
-		Username:     *servicenowConfig.Username,
-		Password:     *servicenowConfig.Password,
-	})
+	config := servicenow.Config{
+		InstanceURL: *servicenowConfig.InstanceURL,
+		BasicAuth:   isBasicAuth(servicenowConfig),
+		GrantType:   "password",
+	}
+
+	if servicenowConfig.ClientID != nil {
+		config.ClientID = *servicenowConfig.ClientID
+	}
+	if servicenowConfig.ClientSecret != nil {
+		config.ClientSecret = *servicenowConfig.ClientSecret
+	}
+	if servicenowConfig.Username != nil {
+		config.Username = *servicenowConfig.Username
+	}
+	if servicenowConfig.Password != nil {
+		config.Password = *servicenowConfig.Password
+	}
+
+	client, err := servicenow.New(config)
+	if err != nil {
+		return nil, err
+	}
+
 	return client, err
+}
+
+func isBasicAuth(config servicenowConfig) bool {
+	if config.ClientID == nil && config.ClientSecret == nil {
+		return true
+	}
+	return false
 }

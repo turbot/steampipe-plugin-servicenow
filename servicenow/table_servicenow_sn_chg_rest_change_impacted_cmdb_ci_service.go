@@ -15,9 +15,6 @@ func tableServicenowSnChgRestChangeImpactedCmdbCiService() *plugin.Table {
 		Name:             "servicenow_sn_chg_rest_change_impacted_cmdb_ci_service",
 		Description:      "Change Management - CMDB CI service impacted by change.",
 		DefaultTransform: transform.FromCamel().NullIfEqual(""),
-		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: ignoreError([]string{"response 400", "400"}),
-		},
 		List: &plugin.ListConfig{
 			Hydrate:       listServicenowSnChgRestChangeImpactedCmdbCiServices,
 			ParentHydrate: listServicenowSnChgRestChanges,

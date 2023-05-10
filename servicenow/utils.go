@@ -11,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/connection"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
 
 // connect:: returns servicenow client after authentication
@@ -246,4 +247,98 @@ func ignoreError(errors []string) plugin.ErrorPredicateWithContext {
 		}
 		return false
 	}
+}
+
+type ServiceNowTableBuilder struct {
+	client *servicenow.ServiceNow
+	glides model.SysGlideObjectListResult
+}
+
+func NewServiceNowTableBuilder(client *servicenow.ServiceNow) (*ServiceNowTableBuilder, error) {
+	builder := &ServiceNowTableBuilder{
+		client: client,
+	}
+
+	err := builder.loadGlideObjectList()
+	if err != nil {
+		return nil, err
+	}
+
+	return builder, nil
+}
+
+func (builder *ServiceNowTableBuilder) loadGlideObjectList() error {
+	return builder.client.NowTable.List(model.SysGlideObjectTableName, 1000, 0, "", &builder.glides)
+}
+
+func (builder *ServiceNowTableBuilder) getTableObject(tableName string) (*model.SysDbObject, error) {
+	var returned model.SysDbObjectListResult
+	err := builder.client.NowTable.List(model.SysDbObjectTableName, 1, 0, fmt.Sprintf("name=%s", tableName), &returned)
+	if err != nil {
+		return nil, err
+	}
+	if len(returned.Result) == 0 {
+		return nil, fmt.Errorf("Table %s not found on ServiceNow.", tableName)
+	}
+	return &returned.Result[0], nil
+}
+
+func (builder *ServiceNowTableBuilder) getTableColumns(tableName string) (map[string]string, error) {
+	columns := map[string]string{}
+	limit := 1000
+	offset := 0
+	for {
+		var returned model.SysDictionaryListResult
+		err := builder.client.NowTable.List(model.SysDictionaryTableName, limit, offset, fmt.Sprintf("name=%s", tableName), &returned)
+		if err != nil {
+			return nil, err
+		}
+		totalReturned := len(returned.Result)
+		for _, returnedObject := range returned.Result {
+			if returnedObject.Element == "" {
+				continue
+			}
+			if returnedObject.InternalType.Value == "glide_time" {
+				columns[returnedObject.Element] = "glide_time"
+				continue
+			}
+			var typeGlide model.SysGlideObjectListResult
+			err := builder.client.NowTable.List(model.SysGlideObjectTableName, 1, 0, fmt.Sprintf("name=%s", returnedObject.InternalType.Value), &typeGlide)
+			if err != nil {
+				return nil, err
+			}
+			columns[returnedObject.Element] = typeGlide.Result[0].ScalarType
+		}
+
+		if totalReturned < limit {
+			break
+		}
+		offset += limit
+	}
+
+	return columns, nil
+}
+
+func (builder *ServiceNowTableBuilder) getTableColumnsDescriptions(tableName string) (map[string]model.SysDocumentation, error) {
+	columnsDescriptions := map[string]model.SysDocumentation{}
+	limit := 1000
+	offset := 0
+	for {
+		var returned model.SysDocumentationListResult
+		err := builder.client.NowTable.List(model.SysDocumentationTableName, limit, offset, fmt.Sprintf("name=%s", tableName), &returned)
+		if err != nil {
+			return nil, err
+		}
+		totalReturned := len(returned.Result)
+		for _, returnedObject := range returned.Result {
+			columnsDescriptions[returnedObject.Element] = returnedObject
+		}
+
+		if totalReturned < limit {
+			break
+		}
+		offset += limit
+	}
+
+	return columnsDescriptions, nil
 }

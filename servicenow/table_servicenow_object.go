@@ -37,7 +37,7 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 
 		for {
 			var response tableListResult
-			err = client.NowTable.List(tableName, limit, offset, "", &response)
+			err = client.NowTable.List(tableName, limit, offset, "", false, &response)
 			if err != nil {
 				logger.Error("servicenow.listServicenowObjectsByTable", "query_error", err)
 				return nil, err
@@ -78,7 +78,7 @@ func getServicenowObjectbyID(tableName string) func(ctx context.Context, d *plug
 		}
 
 		var response tableGetResult
-		err = client.NowTable.Read(tableName, sysId, &response)
+		err = client.NowTable.Read(tableName, sysId, false, &response)
 		if err != nil {
 			logger.Error("servicenow.getServicenowObjectbyID", "query_error", err)
 			return nil, err

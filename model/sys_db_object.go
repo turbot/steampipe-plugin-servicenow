@@ -11,6 +11,7 @@ type SysDbObjectGetResult struct {
 }
 
 type SysDbObject struct {
-	Name  string `json:"name"`
-	Label string `json:"label"`
+	Name       string `json:"name"`
+	Label      string `json:"label"`
+	SuperClass string `json:"super_class"`
 }

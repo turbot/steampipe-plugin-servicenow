@@ -269,7 +269,7 @@ func NewServiceNowTableBuilder(client *servicenow.ServiceNow) (*ServiceNowTableB
 
 func (builder *ServiceNowTableBuilder) loadGlideObjectList() error {
 	var glidesResponse model.SysGlideObjectListResult
-	err := builder.client.NowTable.List(model.SysGlideObjectTableName, 1000, 0, "", &glidesResponse)
+	err := builder.client.NowTable.List(model.SysGlideObjectTableName, 1000, 0, "", false, &glidesResponse)
 	if err != nil {
 		return err
 	}
@@ -284,7 +284,7 @@ func (builder *ServiceNowTableBuilder) loadGlideObjectList() error {
 
 func (builder *ServiceNowTableBuilder) GetTableObject(tableName string) (*model.SysDbObject, error) {
 	var returned model.SysDbObjectListResult
-	err := builder.client.NowTable.List(model.SysDbObjectTableName, 1, 0, fmt.Sprintf("name=%s", tableName), &returned)
+	err := builder.client.NowTable.List(model.SysDbObjectTableName, 1, 0, fmt.Sprintf("name=%s", tableName), true, &returned)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +300,7 @@ func (builder *ServiceNowTableBuilder) GetTableColumns(tableName string) (map[st
 	offset := 0
 	for {
 		var returned model.SysDictionaryListResult
-		err := builder.client.NowTable.List(model.SysDictionaryTableName, limit, offset, fmt.Sprintf("name=%s", tableName), &returned)
+		err := builder.client.NowTable.List(model.SysDictionaryTableName, limit, offset, fmt.Sprintf("name=%s", tableName), false, &returned)
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +333,7 @@ func (builder *ServiceNowTableBuilder) GetTableColumnsDescriptions(tableName str
 	offset := 0
 	for {
 		var returned model.SysDocumentationListResult
-		err := builder.client.NowTable.List(model.SysDocumentationTableName, limit, offset, fmt.Sprintf("name=%s", tableName), &returned)
+		err := builder.client.NowTable.List(model.SysDocumentationTableName, limit, offset, fmt.Sprintf("name=%s", tableName), false, &returned)
 		if err != nil {
 			return nil, err
 		}

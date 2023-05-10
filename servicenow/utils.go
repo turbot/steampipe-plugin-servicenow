@@ -251,7 +251,7 @@ func ignoreError(errors []string) plugin.ErrorPredicateWithContext {
 
 type ServiceNowTableBuilder struct {
 	client *servicenow.ServiceNow
-	glides model.SysGlideObjectListResult
+	glides map[string]model.SysGlideObject
 }
 
 func NewServiceNowTableBuilder(client *servicenow.ServiceNow) (*ServiceNowTableBuilder, error) {
@@ -268,10 +268,21 @@ func NewServiceNowTableBuilder(client *servicenow.ServiceNow) (*ServiceNowTableB
 }
 
 func (builder *ServiceNowTableBuilder) loadGlideObjectList() error {
-	return builder.client.NowTable.List(model.SysGlideObjectTableName, 1000, 0, "", &builder.glides)
+	var glidesResponse model.SysGlideObjectListResult
+	err := builder.client.NowTable.List(model.SysGlideObjectTableName, 1000, 0, "", &glidesResponse)
+	if err != nil {
+		return err
+	}
+	if builder.glides == nil {
+		builder.glides = make(map[string]model.SysGlideObject)
+	}
+	for _, glide := range glidesResponse.Result {
+		builder.glides[glide.Name] = glide
+	}
+	return nil
 }
 
-func (builder *ServiceNowTableBuilder) getTableObject(tableName string) (*model.SysDbObject, error) {
+func (builder *ServiceNowTableBuilder) GetTableObject(tableName string) (*model.SysDbObject, error) {
 	var returned model.SysDbObjectListResult
 	err := builder.client.NowTable.List(model.SysDbObjectTableName, 1, 0, fmt.Sprintf("name=%s", tableName), &returned)
 	if err != nil {
@@ -283,7 +294,7 @@ func (builder *ServiceNowTableBuilder) getTableObject(tableName string) (*model.
 	return &returned.Result[0], nil
 }
 
-func (builder *ServiceNowTableBuilder) getTableColumns(tableName string) (map[string]string, error) {
+func (builder *ServiceNowTableBuilder) GetTableColumns(tableName string) (map[string]string, error) {
 	columns := map[string]string{}
 	limit := 1000
 	offset := 0
@@ -302,12 +313,9 @@ func (builder *ServiceNowTableBuilder) getTableColumns(tableName string) (map[st
 				columns[returnedObject.Element] = "glide_time"
 				continue
 			}
-			var typeGlide model.SysGlideObjectListResult
-			err := builder.client.NowTable.List(model.SysGlideObjectTableName, 1, 0, fmt.Sprintf("name=%s", returnedObject.InternalType.Value), &typeGlide)
-			if err != nil {
-				return nil, err
-			}
-			columns[returnedObject.Element] = typeGlide.Result[0].ScalarType
+			// Find the scalar type of the column
+			glide := builder.glides[returnedObject.InternalType.Value]
+			columns[returnedObject.Element] = glide.ScalarType
 		}
 
 		if totalReturned < limit {
@@ -319,7 +327,7 @@ func (builder *ServiceNowTableBuilder) getTableColumns(tableName string) (map[st
 	return columns, nil
 }
 
-func (builder *ServiceNowTableBuilder) getTableColumnsDescriptions(tableName string) (map[string]model.SysDocumentation, error) {
+func (builder *ServiceNowTableBuilder) GetTableColumnsDescriptions(tableName string) (map[string]model.SysDocumentation, error) {
 	columnsDescriptions := map[string]model.SysDocumentation{}
 	limit := 1000
 	offset := 0

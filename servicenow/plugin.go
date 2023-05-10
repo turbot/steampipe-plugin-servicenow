@@ -110,11 +110,6 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 func generateDynamicTables(ctx context.Context, d *plugin.TableMapData, builder ServiceNowTableBuilder) *plugin.Table {
 	logger := plugin.Logger(ctx)
 	logger.Warn("generateDynamicTables")
-	client, err := ConnectUncached(ctx, d.Connection)
-	if err != nil {
-		logger.Error("servicenow.generateDynamicTables", "connection_error", err)
-		return nil
-	}
 
 	// Get the query for the metric (required)
 	servicenowTableName := ctx.Value(contextKey("ServicenowTableName")).(string)
@@ -126,18 +121,18 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData, builder 
 	// Key columns
 	keyColumns := plugin.KeyColumnSlice{}
 
-	serviceNowTableObject, err := builder.getTableObject(servicenowTableName)
+	serviceNowTableObject, err := builder.GetTableObject(servicenowTableName)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "table_documentation_error", err)
 		return nil
 	}
 
-	servicenowObjectFields, err := builder.getTableColumns(servicenowTableName)
+	servicenowObjectFields, err := builder.GetTableColumns(servicenowTableName)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "column_build_error", err)
 	}
 
-	fieldsDescriptions, err := builder.getTableColumnsDescriptions(servicenowTableName)
+	fieldsDescriptions, err := builder.GetTableColumnsDescriptions(servicenowTableName)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "column_documentation_error", err)
 	}

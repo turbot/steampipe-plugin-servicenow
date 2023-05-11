@@ -69,12 +69,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	servicenowTables := []string{}
 	config := GetConfig(d.Connection)
 	if config.Objects != nil && len(*config.Objects) > 0 {
-		for _, tableName := range *config.Objects {
-			pluginTableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(tableName, substitution))
-			if _, ok := tables[pluginTableName]; !ok {
-				servicenowTables = append(servicenowTables, tableName)
-			}
-		}
+		servicenowTables = append(servicenowTables, *config.Objects...)
 	}
 
 	builder, err := NewServiceNowTableBuilder(client)
@@ -86,10 +81,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	wg.Add(len(servicenowTables))
 	for _, sfTable := range servicenowTables {
 		tableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(sfTable, substitution))
-		if tables[tableName] != nil {
-			wg.Done()
-			continue
-		}
+		plugin.Logger(ctx).Warn("tableName", tableName)
 		go func(name string) {
 			defer wg.Done()
 			tableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(name, substitution))

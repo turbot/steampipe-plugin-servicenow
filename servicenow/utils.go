@@ -359,8 +359,16 @@ func (builder *ServiceNowTableBuilder) GetTableColumnsTypes(tableName string) (m
 				columns[returnedObject.Element] = "glide_time"
 				continue
 			}
+
 			// Find the scalar type of the column
 			glide := builder.glides[returnedObject.InternalType.Value]
+
+			// non-visible GUID fields are string typed
+			if glide.ScalarType == "GUID" && glide.Visible != "true" {
+				columns[returnedObject.Element] = "string"
+				continue
+			}
+
 			columns[returnedObject.Element] = glide.ScalarType
 		}
 

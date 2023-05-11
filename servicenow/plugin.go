@@ -152,8 +152,10 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 			column.Type = proto.ColumnType_DOUBLE
 		case "int", "integer", "longint":
 			column.Type = proto.ColumnType_INT
-		default:
+		case "GUID":
 			column.Type = proto.ColumnType_JSON
+		default:
+			column.Type = proto.ColumnType_STRING
 		}
 
 		cols = append(cols, &column)

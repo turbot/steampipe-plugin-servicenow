@@ -4,17 +4,13 @@ Configuration Item.
 
 ## Examples
 
-### List CMDB Configuration Item name, asset tag, serial number and model name
+### List CMDB Configuration Item name, asset tag, serial number
 
 ```sql
 select
-  ci.name, ci.asset_tag, ci.serial_number, m.name as model
+  ci.name, ci.asset_tag, ci.serial_number
 from
-  cmdb_ci ci
-join
-  servicenow_cmdb_model m
-on
-  m.sys_id = ci.model_id ->> 'value'
+  servicenow_cmdb_ci ci
 limit 100;
 ```
 

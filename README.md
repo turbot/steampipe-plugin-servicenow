@@ -20,7 +20,15 @@ steampipe plugin install servicenow
 Run a query:
 
 ```sql
-
+select
+  number,
+  short_description,
+  category,
+  priority
+from
+  servicenow_incident
+where
+  state = 1
 ```
 
 ## Developing

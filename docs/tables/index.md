@@ -19,11 +19,28 @@ og_image: "/images/plugins/turbot/servicenow-social-graphic.png"
 For example:
 
 ```sql
-[query table]
+select
+  number,
+  short_description,
+  category,
+  priority
+from
+  servicenow_incident
+where
+  state = 1
 ```
 
 ```
-[result table]
++------------+---------------------------------------+----------+----------+
+| number     | short_description                     | category | priority |
++------------+---------------------------------------+----------+----------+
+| INC0000039 | Trouble getting to Oregon mail server | network  | 5        |
+| INC0000046 | Can't access SFA software             | software | 3        |
+| INC0009001 | Unable to post content on a Wiki page | inquiry  | 3        |
+| INC0000057 | Performance problems with wifi        | inquiry  | 5        |
+| INC0009005 | Email server is down.                 | software | 1        |
+| INC0007002 | Need access to the common drive.      | inquiry  | 4        |
++------------+---------------------------------------+----------+----------+
 ```
 
 ## Documentation

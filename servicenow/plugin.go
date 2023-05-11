@@ -107,7 +107,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	return tables, nil
 }
 
-func generateDynamicTables(ctx context.Context, d *plugin.TableMapData, builder ServiceNowTableBuilder) *plugin.Table {
+func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder ServiceNowTableBuilder) *plugin.Table {
 	logger := plugin.Logger(ctx)
 	logger.Warn("generateDynamicTables")
 
@@ -115,65 +115,50 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData, builder 
 	servicenowTableName := ctx.Value(contextKey("ServicenowTableName")).(string)
 	tableName := ctx.Value(contextKey("PluginTableName")).(string)
 
-	// Top columns
-	cols := []*plugin.Column{}
-	servicenowCols := map[string]string{}
-	// Key columns
-	keyColumns := plugin.KeyColumnSlice{}
-
-	serviceNowTableObject, err := builder.GetTableObject(servicenowTableName)
+	serviceNowTableObject, err := builder.GetTableByName(servicenowTableName)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "table_documentation_error", err)
-		return nil
 	}
 
-	servicenowObjectFields, err := builder.GetTableColumns(servicenowTableName)
+	var columnsData = make(map[string]ServiceNowTableColumn)
+	err = builder.GetTableColumns(serviceNowTableObject.Name, serviceNowTableObject.SuperClass, columnsData)
 	if err != nil {
 		logger.Error("servicenow.generateDynamicTables", "column_build_error", err)
 	}
 
-	fieldsDescriptions, err := builder.GetTableColumnsDescriptions(servicenowTableName)
-	if err != nil {
-		logger.Error("servicenow.generateDynamicTables", "column_documentation_error", err)
-	}
+	// Top columns
+	cols := []*plugin.Column{}
+	servicenowCols := map[string]string{}
 
-	for fieldName, fieldType := range servicenowObjectFields {
-		columnFieldName := fieldName
-
-		columnDescription := fieldsDescriptions[columnFieldName].Hint
+	for columnFieldName, columnData := range columnsData {
+		columnDescription := columnData.Description
 		if columnDescription == "" {
-			columnDescription = fieldsDescriptions[columnFieldName].Label
+			columnDescription = columnData.Label
 		}
 		column := plugin.Column{
 			Name:        columnFieldName,
 			Description: fmt.Sprintf("%s.", columnDescription),
-			Transform:   transform.FromP(getFieldFromSObjectMap, fieldName),
+			Transform:   transform.FromP(getFieldFromSObjectMap, columnFieldName),
 		}
 		// Adding column type in the map to help in qual handling
-		servicenowCols[columnFieldName] = fieldType
+		servicenowCols[columnFieldName] = columnData.Type
 
 		// Set column type based on the `soapType` from servicenow schema
-		switch fieldType {
+		switch columnData.Type {
 		case "string", "glide_date", "date", "time":
 			column.Type = proto.ColumnType_STRING
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
 		case "glide_time":
 			column.Type = proto.ColumnType_STRING
 			column.Transform.Transform(parseGlideTime)
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "datetime":
 			column.Type = proto.ColumnType_TIMESTAMP
 			column.Transform.Transform(parseDateTime)
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "boolean":
 			column.Type = proto.ColumnType_BOOL
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
 		case "double", "decimal", "float":
 			column.Type = proto.ColumnType_DOUBLE
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "int", "integer", "longint":
 			column.Type = proto.ColumnType_INT
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		default:
 			column.Type = proto.ColumnType_JSON
 		}
@@ -182,11 +167,9 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData, builder 
 	}
 
 	Table := plugin.Table{
-		Name: tableName,
-		// Description: fmt.Sprintf("Represents Servicenow object %s.", servicenowObjectMetadata["name"]),
+		Name:        tableName,
 		Description: fmt.Sprintf("%s.", serviceNowTableObject.Label),
 		List: &plugin.ListConfig{
-			// KeyColumns: keyColumns,
 			Hydrate: listServicenowObjectsByTable(servicenowTableName, servicenowCols),
 		},
 		Get: &plugin.GetConfig{
@@ -194,9 +177,6 @@ func generateDynamicTables(ctx context.Context, d *plugin.TableMapData, builder 
 			Hydrate:    getServicenowObjectbyID(servicenowTableName),
 		},
 		Columns: cols,
-		// Columns: []*plugin.Column{
-		// 	{Name: "raw", Description: "", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
-		// },
 	}
 
 	return &Table

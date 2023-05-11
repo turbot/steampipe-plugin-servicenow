@@ -249,6 +249,13 @@ func ignoreError(errors []string) plugin.ErrorPredicateWithContext {
 	}
 }
 
+type ServiceNowTableColumn struct {
+	Name        string
+	Type        string
+	Label       string
+	Description string
+}
+
 type ServiceNowTableBuilder struct {
 	client *servicenow.ServiceNow
 	glides map[string]model.SysGlideObject
@@ -282,19 +289,58 @@ func (builder *ServiceNowTableBuilder) loadGlideObjectList() error {
 	return nil
 }
 
-func (builder *ServiceNowTableBuilder) GetTableObject(tableName string) (*model.SysDbObject, error) {
+func (builder *ServiceNowTableBuilder) GetTableByName(tableName string) (*model.SysDbObject, error) {
 	var returned model.SysDbObjectListResult
 	err := builder.client.NowTable.List(model.SysDbObjectTableName, 1, 0, fmt.Sprintf("name=%s", tableName), true, &returned)
 	if err != nil {
 		return nil, err
 	}
 	if len(returned.Result) == 0 {
-		return nil, fmt.Errorf("Table %s not found on ServiceNow.", tableName)
+		return nil, fmt.Errorf("table %s not found on ServiceNow", tableName)
 	}
 	return &returned.Result[0], nil
 }
 
-func (builder *ServiceNowTableBuilder) GetTableColumns(tableName string) (map[string]string, error) {
+func (builder *ServiceNowTableBuilder) GetTableById(sysId string) (*model.SysDbObject, error) {
+	var returned model.SysDbObjectGetResult
+	err := builder.client.NowTable.Read(model.SysDbObjectTableName, sysId, true, &returned)
+	if err != nil {
+		return nil, err
+	}
+	return &returned.Result, nil
+}
+
+func (builder *ServiceNowTableBuilder) GetTableColumns(tableName string, parentTableSysId string, serviceNowColumns map[string]ServiceNowTableColumn) error {
+	if parentTableSysId != "" {
+		serviceNowParentTable, err := builder.GetTableById(parentTableSysId)
+		if err != nil {
+			return err
+		}
+		builder.GetTableColumns(serviceNowParentTable.Name, serviceNowParentTable.SuperClass, serviceNowColumns)
+	}
+
+	servicenowObjectFields, err := builder.GetTableColumnsTypes(tableName)
+	if err != nil {
+		return err
+	}
+
+	fieldsDescriptions, err := builder.GetTableColumnsDescriptions(tableName)
+	if err != nil {
+		return err
+	}
+
+	for fieldName, fieldType := range servicenowObjectFields {
+		serviceNowColumns[fieldName] = ServiceNowTableColumn{
+			Name:        fieldName,
+			Type:        fieldType,
+			Label:       fieldsDescriptions[fieldName].Label,
+			Description: fieldsDescriptions[fieldName].Hint,
+		}
+	}
+	return nil
+}
+
+func (builder *ServiceNowTableBuilder) GetTableColumnsTypes(tableName string) (map[string]string, error) {
 	columns := map[string]string{}
 	limit := 1000
 	offset := 0

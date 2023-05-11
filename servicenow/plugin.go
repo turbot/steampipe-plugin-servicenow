@@ -109,15 +109,16 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 
 func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder ServiceNowTableBuilder) *plugin.Table {
 	logger := plugin.Logger(ctx)
-	logger.Warn("generateDynamicTables")
 
 	// Get the query for the metric (required)
 	servicenowTableName := ctx.Value(contextKey("ServicenowTableName")).(string)
 	tableName := ctx.Value(contextKey("PluginTableName")).(string)
+	logger.Info("generating dynamic table:", tableName)
 
 	serviceNowTableObject, err := builder.GetTableByName(servicenowTableName)
 	if err != nil {
-		logger.Error("servicenow.generateDynamicTables", "table_documentation_error", err)
+		logger.Error("servicenow.generateDynamicTables", "table_generation_error", err)
+		return nil
 	}
 
 	var columnsData = make(map[string]ServiceNowTableColumn)

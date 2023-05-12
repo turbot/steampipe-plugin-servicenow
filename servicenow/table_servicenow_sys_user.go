@@ -15,7 +15,8 @@ func tableServicenowSysUser() *plugin.Table {
 		Name:        "servicenow_sys_user",
 		Description: "User.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(SysUserTableName, nil),
+			KeyColumns: plugin.OptionalColumns([]string{"accumulated_roles", "avatar", "city", "correlation_id", "country", "date_format", "department", "edu_status", "email", "employee_number", "first_name", "gender", "hashed_user_id", "home_phone", "introduction", "last_login", "last_login_device", "last_name", "last_password", "middle_name", "mobile_phone", "name", "phone", "photo", "preferred_language", "roles", "source", "state", "street", "sys_class_name", "sys_created_by", "sys_domain_path", "sys_id", "sys_updated_by", "time_format", "time_zone", "title", "transaction_log", "user_name", "user_password", "zip"}),
+			Hydrate:    listServicenowObjectsByTable(SysUserTableName, nil),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServicenowObjectbyID(SysUserTableName),

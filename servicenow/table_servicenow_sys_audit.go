@@ -15,7 +15,8 @@ func tableServicenowSysAudit() *plugin.Table {
 		Name:        "servicenow_sys_audit",
 		Description: "Table change record.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(SysAuditTableName, nil),
+			KeyColumns: plugin.OptionalColumns([]string{"documentkey", "fieldname", "internal_checkpoint", "newvalue", "oldvalue", "reason", "sys_created_by", "sys_id", "tablename", "user"}),
+			Hydrate:    listServicenowObjectsByTable(SysAuditTableName, nil),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServicenowObjectbyID(SysAuditTableName),

@@ -15,7 +15,8 @@ func tableServicenowSysGroupHasRole() *plugin.Table {
 		Name:        "servicenow_sys_group_has_role",
 		Description: "Group Role.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(SysGroupHasRoleTableName, nil),
+			KeyColumns: plugin.OptionalColumns([]string{"sys_created_by", "sys_id", "sys_updated_by"}),
+			Hydrate:    listServicenowObjectsByTable(SysGroupHasRoleTableName, nil),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServicenowObjectbyID(SysGroupHasRoleTableName),

@@ -16,7 +16,8 @@ func tableServicenowCmdbCiService() *plugin.Table {
 		DefaultTransform: transform.FromCamel(),
 		Description:      "Configuration Item.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(CmdbCIServiceTableName, nil),
+			KeyColumns: plugin.OptionalColumns([]string{"aliases", "asset_tag", "attestation_status", "attributes", "busines_criticality", "business_need", "category", "checkout", "comments", "compatibility_dependencies", "consumer_type", "correlation_id", "cost_cc", "discovery_source", "dns_domain", "due_in", "environment", "fqdn", "gl_account", "invoice_number", "ip_address", "justification", "lease_id", "mac_address", "model_number", "monitoring_requirements", "name", "number", "po_number", "portfolio_status", "prerequisites", "price_model", "price_unit", "purchase_date", "serial_number", "service_classification", "service_level_requirement", "service_status", "short_description", "stakeholders", "state", "subcategory", "sys_class_name", "sys_class_path", "sys_created_by", "sys_domain_path", "sys_id", "sys_updated_by", "unit_description", "used_for", "version", "warranty_expiration"}),
+			Hydrate:    listServicenowObjectsByTable(CmdbCIServiceTableName, nil),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServicenowObjectbyID(CmdbCIServiceTableName),

@@ -15,7 +15,8 @@ func tableServicenowSysAuditRelation() *plugin.Table {
 		Name:        "servicenow_sys_audit_relation",
 		Description: "Table relationship audit record.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(SysAuditRelationTableName, nil),
+			KeyColumns: plugin.OptionalColumns([]string{"documentkey", "sys_created_by", "sys_id", "tablename"}),
+			Hydrate:    listServicenowObjectsByTable(SysAuditRelationTableName, nil),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServicenowObjectbyID(SysAuditRelationTableName),

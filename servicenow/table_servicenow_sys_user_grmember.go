@@ -15,7 +15,8 @@ func tableServicenowSysUserGroupMember() *plugin.Table {
 		Name:        "servicenow_sys_user_grmember",
 		Description: "User Group Member.",
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(SysUserGroupMemberTableName, nil),
+			KeyColumns: plugin.OptionalColumns([]string{"sys_created_by", "sys_id", "sys_updated_by"}),
+			Hydrate:    listServicenowObjectsByTable(SysUserGroupMemberTableName, nil),
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getServicenowObjectbyID(SysUserGroupMemberTableName),

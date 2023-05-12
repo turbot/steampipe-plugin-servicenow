@@ -20,7 +20,7 @@ type tableGetResult struct {
 func listServicenowObjectsByTable(tableName string, servicenowCols map[string]string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 		logger := plugin.Logger(ctx)
-		client, err := ConnectUncached(ctx, d.Connection)
+		client, err := Connect(ctx, d)
 		if err != nil {
 			logger.Error("servicenow.listServicenowObjectsByTable", "connect_error", err)
 			return nil, err

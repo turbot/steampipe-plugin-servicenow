@@ -26,6 +26,11 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 			return nil, err
 		}
 
+		query := buildQueryFromQuals(d.Quals, d.Table.Columns, servicenowCols)
+		if query != "" {
+			plugin.Logger(ctx).Debug("servicenow.listServicenowObjectsByTable", "table_name", d.Table.Name, "query_condition", query)
+		}
+
 		offset := 0
 		limit := 30
 		if d.QueryContext.Limit != nil {
@@ -37,7 +42,7 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 
 		for {
 			var response tableListResult
-			err = client.NowTable.List(tableName, limit, offset, "", false, &response)
+			err = client.NowTable.List(tableName, limit, offset, query, false, &response)
 			if err != nil {
 				logger.Error("servicenow.listServicenowObjectsByTable", "query_error", err)
 				return nil, err
@@ -98,9 +103,8 @@ func getFieldFromSObjectMap(ctx context.Context, d *transform.TransformData) (in
 }
 
 func getFieldFromSObjectMapByColumnName(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	servicenowColumnName := getServicenowColumnName(d.ColumnName)
 	ls := d.HydrateItem.(map[string]interface{})
-	return ls[servicenowColumnName], nil
+	return ls[d.ColumnName], nil
 }
 
 func sanitizeTableObject(tableObject map[string]interface{}) {

@@ -79,8 +79,8 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 
 	var wg sync.WaitGroup
 	wg.Add(len(servicenowTables))
-	for _, sfTable := range servicenowTables {
-		tableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(sfTable, substitution))
+	for _, snowTable := range servicenowTables {
+		tableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(snowTable, substitution))
 		plugin.Logger(ctx).Warn("tableName", tableName)
 		go func(name string) {
 			defer wg.Done()
@@ -93,7 +93,7 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 			if table != nil {
 				tables[tableName] = table
 			}
-		}(sfTable)
+		}(snowTable)
 	}
 	wg.Wait()
 	return tables, nil
@@ -122,6 +122,8 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 	// Top columns
 	cols := []*plugin.Column{}
 	servicenowCols := map[string]string{}
+	// Key columns
+	keyColumns := plugin.KeyColumnSlice{}
 
 	for columnFieldName, columnData := range columnsData {
 		columnDescription := columnData.Description
@@ -140,6 +142,7 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 		switch columnData.Type {
 		case "string", "glide_date", "date", "time":
 			column.Type = proto.ColumnType_STRING
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
 		case "glide_time":
 			column.Type = proto.ColumnType_STRING
 			column.Transform.Transform(parseGlideTime)
@@ -150,8 +153,10 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 			column.Type = proto.ColumnType_BOOL
 		case "double", "decimal", "float":
 			column.Type = proto.ColumnType_DOUBLE
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "int", "integer", "longint":
 			column.Type = proto.ColumnType_INT
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "GUID":
 			column.Type = proto.ColumnType_JSON
 		default:
@@ -165,7 +170,8 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 		Name:        tableName,
 		Description: fmt.Sprintf("%s.", serviceNowTableObject.Label),
 		List: &plugin.ListConfig{
-			Hydrate: listServicenowObjectsByTable(servicenowTableName, servicenowCols),
+			KeyColumns: keyColumns,
+			Hydrate:    listServicenowObjectsByTable(servicenowTableName, servicenowCols),
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("sys_id"),

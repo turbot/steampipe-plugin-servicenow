@@ -13,7 +13,8 @@ select
   os 
 from
   servicenow_cmdb_ci_server
-order by name;
+order by
+  name;
 ```
 
 ### Number of servers running each OS version
@@ -21,10 +22,11 @@ order by name;
 ```sql
 select
   os,
-  count(*) 
+  count(*)
 from
   servicenow_cmdb_ci_server 
-group by os;
+group by
+  os;
 ```
 
 ### List all servers that have been in running for more than 3 years

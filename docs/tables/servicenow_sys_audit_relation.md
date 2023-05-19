@@ -4,74 +4,107 @@ Table relationship audit record.
 
 ## Examples
 
-### Retrieve all relations that were deleted:
+### Retrieve all relations that were deleted
 
 ```sql
-SELECT *
-FROM servicenow_sys_audit_relation
-WHERE audit_delete IS NOT NULL;
+select
+  count(*) as num_changes 
+from
+  servicenow_sn_chg_rest_change 
+where
+  state = 1 
+  and priority = 2;
 ```
 
-### Retrieve all relations that were created:
+### Retrieve all relations that were created
 
 ```sql
-SELECT *
-FROM servicenow_sys_audit_relation
-WHERE audit IS NOT NULL AND audit_delete IS NULL;
+select
+  * 
+from
+  servicenow_sys_audit_relation 
+where
+  audit is not null 
+  and audit_delete is null;
 ```
 
-### Retrieve all relations that were updated:
+### Retrieve all relations that were updated
 
 ```sql
-SELECT *
-FROM servicenow_sys_audit_relation
-WHERE audit IS NOT NULL AND audit_delete IS NOT NULL;
+select
+  * 
+from
+  servicenow_sys_audit_relation 
+where
+  audit is not null 
+  and audit_delete is not null;
 ```
 
-### Retrieve all relations for a specific table:
+### Retrieve all relations for a specific table
 
 ```sql
-SELECT *
-FROM servicenow_sys_audit_relation
-WHERE tablename = 'incident';
+select
+  * 
+from
+  servicenow_sys_audit_relation 
+where
+  tablename = 'incident';
 ```
 
-### Retrieve all relations created by a specific user:
+### Retrieve all relations created by a specific user
 
 ```sql
-SELECT *
-FROM servicenow_sys_audit_relation
-WHERE sys_created_by = 'jsmith';
+select
+  * 
+from
+  servicenow_sys_audit_relation 
+where
+  sys_created_by = 'jsmith';
 ```
 
-### Retrieve all relations created between a specific date range:
+### Retrieve all relations created between a specific date range
 
 ```sql
-SELECT *
-FROM servicenow_sys_audit_relation
-WHERE sys_created_on BETWEEN '2022-01-01' AND '2022-12-31';
+select
+  * 
+from
+  servicenow_sys_audit_relation 
+where
+  sys_created_on between '2022-01-01' and '2022-12-31';
 ```
 
-### Retrieve the number of relations created by each user:
+### Retrieve the number of relations created by each user
 
 ```sql
-SELECT sys_created_by, COUNT(*) as relation_count
-FROM servicenow_sys_audit_relation
-GROUP BY sys_created_by;
+select
+  sys_created_by,
+  count(*) as relation_count 
+from
+  servicenow_sys_audit_relation 
+group by
+  sys_created_by;
 ```
 
-### Retrieve the number of relations created per day:
+### Retrieve the number of relations created per day
 
 ```sql
-SELECT DATE(sys_created_on), COUNT(*) as relation_count
-FROM servicenow_sys_audit_relation
-GROUP BY DATE(sys_created_on);
+select
+  date(sys_created_on),
+  count(*) as relation_count 
+from
+  servicenow_sys_audit_relation 
+group by
+  date(sys_created_on);
 ```
 
-### Retrieve the number of relations created per table:
+### Retrieve the number of relations created per table
 
 ```sql
-SELECT tablename, COUNT(*) as relation_count
-FROM servicenow_sys_audit_relation
-GROUP BY tablename;
+select
+  tablename,
+  count(*) as relation_count 
+from
+  servicenow_sys_audit_relation 
+group by
+  tablename;
 ```

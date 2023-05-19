@@ -5,53 +5,86 @@ Customer Service Management (CSM) consumer records.
 ## Examples
 
 ### What are the first and last names and email of all active consumers?
+
 ```sql
-SELECT first_name, last_name, email
-FROM servicenow_now_consumer
-WHERE active = true;
+select
+  first_name,
+  last_name,
+  email 
+from
+  servicenow_now_consumer 
+where
+  active = true;
 ```
 
 ### How many consumers are there in each state?
+
 ```sql
-SELECT state, count(*) as num_consumers
-FROM servicenow_now_consumer
-GROUP BY state
-order by state desc;
+select
+  state,
+  count(*) as num_consumers 
+from
+  servicenow_now_consumer 
+group by
+  state 
+order by
+  state desc;
 ```
 
 ### What is the total number of consumers who doesn't have a mobile phone number listed?
+
 ```sql
-SELECT COUNT(*)
-FROM servicenow_now_consumer
-WHERE mobile_phone IS NULL;
+select
+  count(*) 
+from
+  servicenow_now_consumer 
+where
+  mobile_phone is null;
 ```
 
 ### What is the most common prefix for consumer names?
+
 ```sql
-SELECT prefix, COUNT(*) as num_consumers
-FROM servicenow_now_consumer
-GROUP BY prefix
-ORDER BY num_consumers DESC
-LIMIT 1;
+select
+  prefix,
+  count(*) as num_consumers 
+from
+  servicenow_now_consumer 
+group by
+  prefix 
+order by
+  num_consumers desc limit 1;
 ```
 
 ### How many consumers have an email address that contains the word "gmail"?
+
 ```sql
-SELECT COUNT(*)
-FROM servicenow_now_consumer
-WHERE email LIKE '%gmail%';
+select
+  count(*) 
+from
+  servicenow_now_consumer 
+where
+  email like '%gmail%';
 ```
 
 ### Which consumers have a title that contains the word "Manager"?
+
 ```sql
-SELECT *
-FROM servicenow_now_consumer
-WHERE title LIKE '%Manager%';
+select
+  * 
+from
+  servicenow_now_consumer 
+where
+  title like '%Manager%';
 ```
 
-1### How many consumers have a photo attached to their record?
+### How many consumers have a photo attached to their record?
+
 ```sql
-SELECT COUNT(*)
-FROM servicenow_now_consumer
-WHERE photo IS NOT NULL;
+select
+  count(*) 
+from
+  servicenow_now_consumer 
+where
+  photo is not null;
 ```

@@ -14,7 +14,7 @@ from
 limit 100;
 ```
 
-### Retrieve a list of all CIs that are currently down or experiencing issues.
+### Retrieve a list of all CIs that are currently down or experiencing issues
 
 ```sql
 select
@@ -28,7 +28,7 @@ where
   operational_status != '1';
 ```
 
-### Identify all CIs that have been recently modified or updated.
+### Identify all CIs that have been recently modified or updated
 
 ```sql
 select
@@ -42,7 +42,7 @@ where
   sys_updated_on > now() - interval '7 days';
 ```
 
-### Get a list of all CIs that have been retired or decommissioned.
+### Get a list of all CIs that have been retired or decommissioned
 
 ```sql
 select
@@ -56,7 +56,7 @@ where
   install_status = '7';
 ```
 
-### Find all CIs that are currently undergoing maintenance or repair.
+### Find all CIs that are currently undergoing maintenance or repair
 
 ```sql
 select
@@ -76,7 +76,7 @@ where
     );
 ```
 
-### Retrieve all CIs with a specific serial number:
+### Retrieve all CIs with a specific serial number
 
 ```sql
 select

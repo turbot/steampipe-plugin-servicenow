@@ -3,7 +3,6 @@ module github.com/turbot/steampipe-plugin-servicenow
 go 1.19
 
 replace github.com/turbot/go-servicenow => github.com/turbot/go-servicenow v0.0.0-20230331182825-6b6e951c1c1f
-// replace github.com/turbot/go-servicenow => ../../forks/go-servicenow
 
 require (
 	github.com/iancoleman/strcase v0.2.0

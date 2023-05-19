@@ -36,7 +36,12 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 }
 
 func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[string]*plugin.Table, error) {
-	client, err := ConnectUncached(ctx, d.Connection)
+	qd := &plugin.QueryData{
+		Connection:      d.Connection,
+		ConnectionCache: d.ConnectionCache,
+	}
+
+	client, err := Connect(ctx, qd)
 	if err != nil {
 		return nil, err
 	}

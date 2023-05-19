@@ -27,7 +27,7 @@ select
 from
   servicenow_incident
 where
-  state = 1
+  state = 1;
 ```
 
 ```
@@ -61,7 +61,7 @@ steampipe plugin install servicenow
 
 | Item        | Description                                                                                                                                                                          |
 |-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Credentials | ServiceNow API requires username and password for all requests.                                                                                                                      |
+| Credentials | ServiceNow API requires an instance URL, username, and password for all requests.                                                                                                    |
 | Radius      | Each connection represents a single ServiceNow Installation.                                                                                                                         |
 | Resolution  | 1. Credentials explicitly set in a steampipe config file (`~/.steampipe/config/servicenow.spc`)<br />2. Credentials specified in environment variables, e.g., `SERVICENOW_PASSWORD`. |
 
@@ -77,21 +77,21 @@ connection "servicenow" {
   instance_url = "https://<your_servicenow_instance>.service-now.com"
 
   # `username` (required) - Your ServiceNow username.
-  username = "john.hill"
+  # username = "john.hill"
   # `password` (required) - Your ServiceNow password.
-  password = "j0t3-$j@H3"
+  # password = "j0t3-$j@H3"
 
   # Optionally, to use OAuth2 authentication mode, you'll need to have the `client_id` and `client_secret` of
   # a registered application in ServiceNow. You can register an application by going to
   # `All > System oAuth > Application Registry` and creating a new OAuth API endpoint for external clients.
 
   # `client_id` (optional) - ServiceNow login application client ID
-  client_id = "9148ce34f5252110392c96f819dbd422"
+  # client_id = "9148ce34f5252110392c96f819dbd422"
   # `client_secret` (optional) - ServiceNow login application client secret
-  client_secret = "Ly#)2auTd"
+  # client_secret = "Ly#)2auTd"
 
-  # `objects` (required) - Additional ServiceNow tables you want to query.
-  #objects = ["cmdb_model", "cmn_location"]
+  # `objects` (optional) - Additional ServiceNow tables you want to query.
+  # objects = ["cmdb_model", "cmn_location"]
 }
 ```
 

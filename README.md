@@ -28,7 +28,7 @@ select
 from
   servicenow_incident
 where
-  state = 1
+  state = 1;
 ```
 
 ## Developing

@@ -85,8 +85,6 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 	var wg sync.WaitGroup
 	wg.Add(len(servicenowTables))
 	for _, snowTable := range servicenowTables {
-		tableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(snowTable, substitution))
-		plugin.Logger(ctx).Warn("tableName", tableName)
 		go func(name string) {
 			defer wg.Done()
 			tableName := "servicenow_" + strcase.ToSnake(re.ReplaceAllString(name, substitution))

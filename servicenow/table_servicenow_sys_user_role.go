@@ -13,7 +13,7 @@ const SysUserRoleTableName = "sys_user_role"
 func tableServicenowSysUserRole() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_user_role",
-		Description: "User Role.",
+		Description: "Defines available roles in the ServiceNow.",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"description", "includes_roles", "name", "requires_subscription", "suffix", "sys_class_name", "sys_created_by", "sys_id", "sys_name", "sys_policy", "sys_update_name", "sys_updated_by"}),
 			Hydrate:    listServicenowObjectsByTable(SysUserRoleTableName, nil),

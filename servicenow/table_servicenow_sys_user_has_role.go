@@ -13,7 +13,7 @@ const SysUserHasRoleTableName = "sys_user_has_role"
 func tableServicenowSysUserHasRole() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_user_has_role",
-		Description: "User Role.",
+		Description: "Tracks assigned roles for users.",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"inh_map", "state", "sys_created_by", "sys_id", "sys_updated_by"}),
 			Hydrate:    listServicenowObjectsByTable(SysUserHasRoleTableName, nil),

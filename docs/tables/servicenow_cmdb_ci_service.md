@@ -1,6 +1,6 @@
 # Table: servicenow_cmdb_ci_service
 
-Configuration Item Service.
+Tracks service-related information in the CMDB.
 
 ## Examples
 

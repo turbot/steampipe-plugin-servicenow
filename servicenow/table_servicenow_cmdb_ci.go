@@ -14,7 +14,7 @@ func tableServicenowCmdbCi() *plugin.Table {
 	return &plugin.Table{
 		Name:             "servicenow_cmdb_ci",
 		DefaultTransform: transform.FromCamel(),
-		Description:      "Configuration Item.",
+		Description:      "Represents configuration items and their attributes in the CMDB.",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"asset_tag", "attestation_status", "attributes", "category", "comments", "correlation_id", "cost_cc", "discovery_source", "dns_domain", "due_in", "environment", "fqdn", "gl_account", "invoice_number", "ip_address", "justification", "lease_id", "mac_address", "model_number", "name", "po_number", "purchase_date", "serial_number", "short_description", "subcategory", "sys_class_name", "sys_class_path", "sys_created_by", "sys_domain_path", "sys_id", "sys_updated_by", "warranty_expiration"}),
 			Hydrate:    listServicenowObjectsByTable(CmdbCITableName, nil),

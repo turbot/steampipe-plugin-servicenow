@@ -13,7 +13,7 @@ const SysGroupHasRoleTableName = "sys_group_has_role"
 func tableServicenowSysGroupHasRole() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_group_has_role",
-		Description: "Group Role.",
+		Description: "Represents relationships between user groups and roles.",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"sys_created_by", "sys_id", "sys_updated_by"}),
 			Hydrate:    listServicenowObjectsByTable(SysGroupHasRoleTableName, nil),

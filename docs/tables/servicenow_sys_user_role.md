@@ -1,6 +1,6 @@
 # Table: servicenow_sys_user_role
 
-User Role.
+Defines available roles in the ServiceNow.
 
 ## Examples
 

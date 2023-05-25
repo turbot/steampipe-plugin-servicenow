@@ -1,6 +1,6 @@
 # Table: servicenow_sys_audit_relation
 
-Table relationship audit record.
+Records audit trail data for relationships between records.
 
 ## Examples
 

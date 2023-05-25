@@ -1,6 +1,6 @@
 # Table: servicenow_incident
 
-Incident.
+Tracks reported incidents.
 
 ## Examples
 

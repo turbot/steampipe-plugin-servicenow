@@ -13,7 +13,7 @@ const SysAuditRelationTableName = "sys_audit_relation"
 func tableServicenowSysAuditRelation() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_audit_relation",
-		Description: "Table relationship audit record.",
+		Description: "Records audit trail data for relationships between records.",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"documentkey", "sys_created_by", "sys_id", "tablename"}),
 			Hydrate:    listServicenowObjectsByTable(SysAuditRelationTableName, nil),

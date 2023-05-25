@@ -1,6 +1,6 @@
 # Table: servicenow_sys_audit
 
-Table change record.
+Tracks changes made to ServiceNow tables.
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # Table: servicenow_sys_user
 
-User.
+Manages user information in the ServiceNow.
 
 ## Examples
 

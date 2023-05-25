@@ -1,6 +1,6 @@
 # Table: servicenow_sys_user_group
 
-User Group.
+Organizes users into groups.
 
 ## Examples
 

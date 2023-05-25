@@ -1,6 +1,6 @@
 # Table: servicenow_cmdb_ci
 
-Configuration Item.
+Represents configuration items and their attributes in the CMDB.
 
 ## Examples
 

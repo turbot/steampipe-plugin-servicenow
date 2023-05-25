@@ -13,7 +13,7 @@ const SysUserGroupTableName = "sys_user_group"
 func tableServicenowSysUserGroup() *plugin.Table {
 	return &plugin.Table{
 		Name:        "servicenow_sys_user_group",
-		Description: "User Group.",
+		Description: "Manages group memberships for users.",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.OptionalColumns([]string{"description", "email", "name", "roles", "source", "sys_created_by", "sys_id", "sys_updated_by", "type"}),
 			Hydrate:    listServicenowObjectsByTable(SysUserGroupTableName, nil),

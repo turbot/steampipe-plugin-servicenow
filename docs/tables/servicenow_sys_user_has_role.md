@@ -1,6 +1,6 @@
 # Table: servicenow_sys_user_has_role
 
-User's Role.
+Tracks assigned roles for users.
 
 ## Examples
 

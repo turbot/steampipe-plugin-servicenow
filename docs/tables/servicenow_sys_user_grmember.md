@@ -1,6 +1,6 @@
 # Table: servicenow_sys_user_grmember
 
-User Group Member.
+Manages group memberships for users.
 
 ## Examples
 

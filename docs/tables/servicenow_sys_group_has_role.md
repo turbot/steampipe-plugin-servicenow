@@ -1,6 +1,6 @@
 # Table: servicenow_sys_group_has_role
 
-Group Role.
+Represents relationships between user groups and roles.
 
 ## Examples
 

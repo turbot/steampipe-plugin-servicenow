@@ -1,6 +1,6 @@
 # Table: servicenow_cmdb_ci_server
 
-Configuration Item Server.
+Manages server configuration item data in the CMDB.
 
 ## Examples
 

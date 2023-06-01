@@ -83,7 +83,7 @@ func getServicenowObjectbyID(tableName string) func(ctx context.Context, d *plug
 		}
 
 		var response tableGetResult
-		err = client.NowTable.Read(tableName, sysId, false, &response)
+		err = client.NowTable.Get(tableName, sysId, false, &response)
 		if err != nil {
 			logger.Error("servicenow.getServicenowObjectbyID", "query_error", err)
 			return nil, err

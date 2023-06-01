@@ -127,7 +127,7 @@ func (builder *ServiceNowTableBuilder) GetTableByName(tableName string) (*model.
 
 func (builder *ServiceNowTableBuilder) GetTableById(sysId string) (*model.SysDbObject, error) {
 	var returned model.SysDbObjectGetResult
-	err := builder.client.NowTable.Read(model.SysDbObjectTableName, sysId, true, &returned)
+	err := builder.client.NowTable.Get(model.SysDbObjectTableName, sysId, true, &returned)
 	if err != nil {
 		return nil, err
 	}

@@ -194,7 +194,7 @@ func getServicenowSnChgRestChanges(ctx context.Context, d *plugin.QueryData, _ *
 	sysId := d.EqualsQualString("sys_id")
 
 	var response snChgRestChangeGetResult
-	err = client.SnChgRestChange.Read(sysId, &response)
+	err = client.SnChgRestChange.Get(sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_sn_chg_rest_change.getServicenowSnChgRestChanges", "query_error", err)
 		return nil, err

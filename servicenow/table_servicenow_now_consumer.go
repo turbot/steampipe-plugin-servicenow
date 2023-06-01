@@ -119,7 +119,7 @@ func getServicenowNowConsumers(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	sysId := d.EqualsQualString("sys_id")
 
-	returnedObject, err := client.NowContact.Read(sysId)
+	returnedObject, err := client.NowContact.Get(sysId)
 	if err != nil {
 		logger.Error("servicenow_now_consumer.getServicenowNowConsumers", "query_error", err)
 		return nil, err

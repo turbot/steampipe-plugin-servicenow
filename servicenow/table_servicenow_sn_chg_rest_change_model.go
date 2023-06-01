@@ -103,7 +103,7 @@ func getServicenowSnChgRestChangeModels(ctx context.Context, d *plugin.QueryData
 	sysId := d.EqualsQualString("sys_id")
 
 	var response snChgRestChangeGetResult
-	err = client.SnChgRestChangeModel.Read(sysId, &response)
+	err = client.SnChgRestChangeModel.Get(sysId, &response)
 	if err != nil {
 		logger.Error("servicenow_sn_chg_rest_change_model.getServicenowSnChgRestChangeModels", "query_error", err)
 		return nil, err

@@ -13,10 +13,10 @@ connection "servicenow" {
   # a registered application in ServiceNow. You can register an application by going to
   # `All > System oAuth > Application Registry` and creating a new OAuth API endpoint for external clients.
 
-  # `client_id` (optional) - ServiceNow login application client ID
+  # `client_id` (optional) - ServiceNow login application client ID.
   # client_id = "9148ce34f5252110392c96f819dbd422"
-  # `client_secret` (optional) - ServiceNow login application client secret
-  # client_secret = "Ly#)2auTd"
+  # `client_secret` (optional) - ServiceNow login application client secret.
+  # client_secret = "Ly#2auTd"
 
   # `objects` (optional) - Additional ServiceNow tables you want to query.
   # objects = ["cmdb_model", "cmn_location"]

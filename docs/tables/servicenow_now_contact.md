@@ -4,7 +4,7 @@ Customer Service Management (CSM) contact records.
 
 ## Examples
 
-### How many contacts are in the `servicenow_now_contact` table?
+### How many contacts are in the servicenow_now_contact table?
 
 ```sql
 select
@@ -30,7 +30,7 @@ select
 from
   servicenow_now_contact 
 where
-  sys_created_on >= now() - interval '7 days'
+  sys_created_on >= now() - interval '7 days';
 ```
 
 ### What is the most common country of origin for the contacts?

@@ -2,7 +2,7 @@
 organization: Turbot
 category: ["saas"]
 icon_url: "/images/plugins/turbot/servicenow.svg"
-brand_color: "#635DFF"
+brand_color: "#62D84E"
 display_name: "ServiceNow"
 name: "servicenow"
 description: "Use SQL to query sys_user, cmdb_ci, incident and more from ServiceNow."

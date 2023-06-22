@@ -140,7 +140,10 @@ func (builder *ServiceNowTableBuilder) GetTableColumns(tableName string, parentT
 		if err != nil {
 			return err
 		}
-		builder.GetTableColumns(serviceNowParentTable.Name, serviceNowParentTable.SuperClass, serviceNowColumns)
+		err = builder.GetTableColumns(serviceNowParentTable.Name, serviceNowParentTable.SuperClass, serviceNowColumns)
+		if err != nil {
+			return err
+		}
 	}
 
 	servicenowObjectFields, err := builder.GetTableColumnsTypes(tableName)

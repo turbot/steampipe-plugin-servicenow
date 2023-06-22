@@ -5,7 +5,7 @@ icon_url: "/images/plugins/turbot/servicenow.svg"
 brand_color: "#62D84E"
 display_name: "ServiceNow"
 name: "servicenow"
-description: "Use SQL to query sys_user, cmdb_ci, incident and more from ServiceNow."
+description: "Use SQL to query CMDB CI services, servers, incidents, objects and more from ServiceNow."
 og_description: "Query ServiceNow with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/servicenow-social-graphic.png"
 ---

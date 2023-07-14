@@ -18,7 +18,6 @@ This plugin will automatically create the tables `servicenow_task`, `servicenow_
 
 Please note that plugin initialization time will increase depending on the number of objects included in the `objects` argument.
 
-
 ## Examples
 
 ### Inspect the table structure
@@ -64,16 +63,24 @@ where
 ### How many tasks have been created by each user?
   
 ```sql
-SELECT sys_created_by, COUNT(*) AS num_tasks_created
-FROM servicenow_task
-GROUP BY sys_created_by
-order BY sys_created_by;
+select
+  sys_created_by,
+  count(*) as num_tasks_created 
+from
+  servicenow_task 
+group by
+  sys_created_by 
+order by
+  sys_created_by;
 ```
 
 ### How many tasks have been opened in the last 24 hours?
 
 ```sql
-SELECT COUNT(*) AS num_tasks
-FROM servicenow_task
-WHERE opened_at >= now() - interval '24 hours';
+select
+  count(*) as num_tasks 
+from
+  servicenow_task 
+where
+  opened_at >= now() - interval '24 hours';
 ```

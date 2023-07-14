@@ -1,3 +1,9 @@
+## v0.1.0 [2023-07-14]
+
+_Enhancements_
+
+- Added documentation for servicenow dynamic tables. ([#4](https://github.com/turbot/steampipe-plugin-servicenow/pull/4))
+
 ## v0.0.1 [2023-06-22]
 
 _What's new?_

@@ -12,6 +12,7 @@ connection "servicenow" {
   username = "my-user"
   password = "my-password"
   objects = ["task", "u_my_custom_sn_table", "cmdb_model", "cmn_location"]
+}
 ```
 
 This plugin will automatically create the tables `servicenow_task`, `servicenow_u_my_custom_sn_table`, `servicenow_cmdb_model`, and `servicenow_cmn_location`.
@@ -31,11 +32,12 @@ connection "servicenow" {
   username = "my-user"
   password = "my-password"
   objects = ["task", "u_my_custom_sn_table", "cmdb_model", "cmn_location"]
+}
 ```
 
 List all tables with:
 
-```sql
+```sh
 .inspect servicenow
 +---------------------------------+--------------------------------+
 | table                           | description                    |
@@ -44,7 +46,7 @@ List all tables with:
 | servicenow_cmn_location         | Location.                      |
 | servicenow_task                 | Task.                          |
 | servicenow_u_my_custom_sn_table | My custom table on ServiceNow. |
-| ...                             | ...                            |
+| (...)                           | (...)                          |
 +---------------------------------+--------------------------------+
 ```
 

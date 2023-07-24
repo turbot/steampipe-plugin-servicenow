@@ -1,3 +1,9 @@
+## v0.1.1 [2023-07-24]
+
+_Bug fixes_
+
+- Fixed the formatting of the output of example queries in dynamic table doc. ([#6](https://github.com/turbot/steampipe-plugin-servicenow/pull/6))
+
 ## v0.1.0 [2023-07-14]
 
 _Enhancements_

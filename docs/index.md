@@ -120,4 +120,4 @@ export SERVICENOW_CLIENT_SECRET=Ly#2auTd
 ## Get involved
 
 - Open source: https://github.com/turbot/steampipe-plugin-servicenow
-- Community: [Slack Channel](https://steampipe.io/community/join)
+- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)

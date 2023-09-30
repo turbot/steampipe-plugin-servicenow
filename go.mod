@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/turbot/go-servicenow v0.0.1
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.0
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.1
 )
 
 require (

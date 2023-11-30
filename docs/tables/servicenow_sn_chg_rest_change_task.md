@@ -1,11 +1,21 @@
-# Table: servicenow_sn_chg_rest_change_task
+---
+title: "Steampipe Table: servicenow_sn_chg_rest_change_task - Query ServiceNow Change Tasks using SQL"
+description: "Allows users to query Change Tasks in ServiceNow, specifically the details related to changes required in an IT infrastructure."
+---
 
-Change Management - Change task.
+# Table: servicenow_sn_chg_rest_change_task - Query ServiceNow Change Tasks using SQL
+
+ServiceNow Change Tasks are a part of the Change Management process in ServiceNow, where each task represents a set of actions required to implement a change in the IT infrastructure. These tasks are created as part of a Change Request and are assigned to various teams for implementation. They help in breaking down the change into manageable tasks and tracking the progress of each task separately.
+
+## Table Usage Guide
+
+The `servicenow_sn_chg_rest_change_task` table provides insights into Change Tasks within ServiceNow Change Management. As an IT Operations Manager, explore task-specific details through this table, including task status, assigned team, and associated metadata. Utilize it to track the progress of each change task, identify bottlenecks, and ensure timely completion of changes in the IT infrastructure.
 
 ## Examples
 
 
 ### What is the state_name distribution of change tasks in the servicenow_sn_chg_rest_change_task table?
+Analyze the distribution of change tasks across various states in the Servicenow platform. This is useful to identify which states have the most change tasks, thereby providing insights into areas that may require more attention or resources.
 
 ```sql
 select
@@ -20,6 +30,7 @@ order by
 ```
 
 ### How many change tasks have been created by each user in the servicenow_sn_chg_rest_change_task table?
+Analyze the distribution of task creation in your system to understand the workload and productivity of each user. This could be useful for assessing individual contributions or identifying potential bottlenecks in your workflow.
 
 ```sql
 select
@@ -32,6 +43,7 @@ group by
 ```
 
 ### How many change tasks have been assigned to each assignment group in the servicenow_sn_chg_rest_change_task table?
+Analyze the distribution of assigned tasks among different groups in your service management system. This can help in understanding workload distribution and identifying any potential bottlenecks or uneven task allocation.
 
 ```sql
 select
@@ -44,6 +56,7 @@ group by
 ```
 
 ### How many change tasks have been assigned to each user and what is their average priority?
+Explore the distribution of task assignments and understand the average priority level assigned to each user. This can help in assessing workload and task importance in a team.
 
 ```sql
 select
@@ -57,6 +70,7 @@ group by
 ```
 
 ### How many change tasks have been completed by each user in the last 30 days?
+Discover the productivity of each user by counting the number of tasks they have completed in the last 30 days. This is beneficial in assessing individual performance and identifying high-performing team members.
 
 ```sql
 select

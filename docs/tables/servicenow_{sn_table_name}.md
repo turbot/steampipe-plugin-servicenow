@@ -1,23 +1,15 @@
-# Table: servicenow_{sn_table_name}
+---
+title: "Steampipe Table: servicenow_{sn_table_name} - Query ServiceNow {OCI_resource} using SQL"
+description: "Allows users to query {OCI_resource} in ServiceNow, providing insights into service management data and potential service anomalies."
+---
 
-Query data from the table `servicenow_{sn_table_name}`, e.g, `servicenow_task`, `servicenow_u_my_custom_sn_table`.
-A table is automatically created to represent each ServiceNow table in the `objects` argument of the [plugin configuration file](../../config/servicenow.spc).
+# Table: servicenow_{sn_table_name} - Query ServiceNow {OCI_resource} using SQL
 
-For instance, given the following connection configuration:
+ServiceNow is a cloud-based platform that provides solutions for IT Service Management (ITSM), IT Operations Management (ITOM), and IT Business Management (ITBM). It helps organizations manage digital workflows, thereby increasing productivity by creating, reading, and updating data for various service management processes. ServiceNow offers a range of IT service management options for on-premise and cloud-based applications.
 
-```hcl
-connection "servicenow" {
-  plugin = "servicenow"
-  instance_url = "https://my-instance.service-now.com"
-  username = "my-user"
-  password = "my-password"
-  objects = ["task", "u_my_custom_sn_table", "cmdb_model", "cmn_location"]
-}
-```
+## Table Usage Guide
 
-This plugin will automatically create the tables `servicenow_task`, `servicenow_u_my_custom_sn_table`, `servicenow_cmdb_model`, and `servicenow_cmn_location`.
-
-Please note that plugin initialization time will increase depending on the number of objects included in the `objects` argument.
+The `servicenow_{sn_table_name}` table provides insights into {OCI_resource} within ServiceNow. As a ServiceNow administrator or IT service manager, explore {OCI_resource}-specific details through this table, including status, assignment groups, and associated metadata. Utilize it to uncover information about {OCI_resource}, such as those with high priority, the assignment groups of {OCI_resource}, and the verification of service level agreements.
 
 ## Examples
 
@@ -51,6 +43,7 @@ List all tables with:
 ```
 
 ### How many tasks were closed in the last 30 days?
+Determine the number of tasks that were finalized within the past month. This is useful for tracking productivity and understanding the recent workload.
 
 ```sql
 select
@@ -63,7 +56,8 @@ where
 ```
 
 ### How many tasks have been created by each user?
-  
+Discover the productivity levels of each user by analyzing the number of tasks they have created. This can be useful for workload management and identifying high-performing individuals.  
+
 ```sql
 select
   sys_created_by,
@@ -77,6 +71,7 @@ order by
 ```
 
 ### How many tasks have been opened in the last 24 hours?
+Assess the volume of tasks initiated within the past day to understand recent workload and resource allocation needs. This can help in managing team capacity and planning for future task assignments.
 
 ```sql
 select

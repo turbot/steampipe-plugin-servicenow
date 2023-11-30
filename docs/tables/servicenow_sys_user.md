@@ -1,10 +1,20 @@
-# Table: servicenow_sys_user
+---
+title: "Steampipe Table: servicenow_sys_user - Query ServiceNow Users using SQL"
+description: "Allows users to query Users in ServiceNow, specifically user details and properties, providing insights into user management and operations."
+---
 
-Manages user information in the ServiceNow.
+# Table: servicenow_sys_user - Query ServiceNow Users using SQL
+
+ServiceNow is a cloud-based platform designed to help businesses manage digital workflows for enterprise operations. It provides a centralized system to manage, coordinate, and develop effective workflows for business processes. ServiceNow includes a wide range of products and services, including IT service management, IT operations management, and IT business management.
+
+## Table Usage Guide
+
+The `servicenow_sys_user` table provides insights into user profiles within ServiceNow. As an IT manager or system administrator, explore user-specific details through this table, including roles, groups, and associated metadata. Utilize it to manage and monitor user activities, such as user roles and group memberships, and to verify user properties.
 
 ## Examples
 
 ### List users who haven't logged in for more than 90 days
+Discover the segments that include users who haven't been active for more than 90 days. This can be useful in identifying inactive accounts for potential clean-up or outreach efforts.
 
 ```sql
 select
@@ -17,6 +27,7 @@ where
 ```
 
 ### Users with Multifactor Authentication Disabled
+Explore which users have not enabled multifactor authentication. This can be useful in identifying potential security risks within your system.
 
 ```sql
 select
@@ -28,6 +39,7 @@ where
 ```
 
 ### Distribution of Users by Department
+Discover the distribution of users across various departments. This query aids in understanding the user allocation in each department, providing valuable insights for resource planning and management.
 
 ```sql
 select
@@ -40,6 +52,7 @@ group by
 ```
 
 ### Users with Failed Login Attempts
+Discover the segments that have experienced unsuccessful login attempts to gain insights into the average number of failed attempts per user. This information can aid in identifying potential security issues or areas for user experience improvement.
 
 ```sql
 select
@@ -52,6 +65,7 @@ where
 ```
 
 ### Users with Profile Photo
+Discover the number of users who have uploaded a profile photo on ServiceNow. This can be useful in identifying user engagement levels or in designing user-centric features.
 
 ```sql
 select
@@ -63,6 +77,7 @@ where
 ```
 
 ### Distribution of Users by Country
+Explore which countries have the most users to understand the global distribution of your user base. This can help in tailoring your services to cater to these regions more effectively.
 
 ```sql
 select
@@ -75,6 +90,7 @@ group by
 ```
 
 ### Users with No Manager Assigned
+Discover the segments that have users without a manager assigned. This can be useful in identifying potential gaps in your team structure or areas that may require additional management oversight.
 
 ```sql
 select
@@ -86,6 +102,7 @@ where
 ```
 
 ### Average Time Since Last Login
+Understand the average duration since the last login for all active users. This can be useful for gauging user activity and identifying potential periods of inactivity.
 
 ```sql
 select
@@ -102,6 +119,7 @@ where
 ```
 
 ### Distribution of Users by Preferred Language
+Explore the distribution of users based on their preferred language. This helps in understanding user preferences and tailoring language-specific services for better user experience.
 
 ```sql
 select

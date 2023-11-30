@@ -1,10 +1,20 @@
-# Table: servicenow_sys_user_has_role
+---
+title: "Steampipe Table: servicenow_sys_user_has_role - Query ServiceNow User Roles using SQL"
+description: "Allows users to query User Roles in ServiceNow, specifically the relationship between users and their assigned roles, providing insights into user access levels and permissions."
+---
 
-Tracks assigned roles for users.
+# Table: servicenow_sys_user_has_role - Query ServiceNow User Roles using SQL
+
+ServiceNow User Roles is a feature within ServiceNow that allows administrators to manage access levels and permissions for individual users. It provides a structured way to assign and monitor roles for various users, including administrators, developers, and IT support staff. ServiceNow User Roles helps in maintaining security and efficient workflow by ensuring that users have appropriate access to perform their tasks.
+
+## Table Usage Guide
+
+The `servicenow_sys_user_has_role` table provides insights into User Roles within ServiceNow. As a system administrator or IT manager, explore user-specific role details through this table, including assigned roles and related metadata. Utilize it to uncover information about user access levels, such as those with administrative permissions, the relationships between users and their roles, and the verification of user permissions.
 
 ## Examples
 
 ### Which users have been granted a specific role through inheritance?
+This query allows you to identify which users have been assigned a specific administrative role through inheritance. It's useful in managing user permissions and understanding the distribution of administrative roles in your system.
 
 ```sql
 select
@@ -24,6 +34,7 @@ where
 ```
 
 ### What is the total number of roles granted?
+Analyze the settings to understand the total count of unique roles granted to users in your ServiceNow instance. This can help in assessing the distribution of responsibilities and privileges within your team.
 
 ```sql
 select
@@ -33,6 +44,7 @@ from
 ```
 
 ### Which roles have been granted to a specific user?
+Determine the areas in which a particular user has been assigned roles. This helps in understanding the user's permissions and access levels within the system.
 
 ```sql
 select
@@ -47,6 +59,7 @@ where
 ```
 
 ### How many users have been granted each role?
+Determine the distribution of user roles within your system to understand the level of access granted to different users. This can aid in security audits by identifying potential over-privileged users.
 
 ```sql
 select
@@ -62,6 +75,7 @@ group by
 ```
 
 ### Which users have been granted a role with elevated privileges?
+Identify instances where users have been given roles with increased access rights. This can be useful for auditing purposes, ensuring only authorized personnel have such privileges.
 
 ```sql
 select distinct

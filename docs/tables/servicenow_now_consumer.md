@@ -16,7 +16,7 @@ The `servicenow_now_consumer` table provides insights into ServiceNow Consumers 
 ### What are the first and last names and email of all active consumers?
 Explore the active consumers by identifying their first and last names along with their email addresses. This is useful for maintaining up-to-date records or for reaching out to active consumers for feedback or promotional campaigns.
 
-```sql
+```sql+postgres
 select
   first_name,
   last_name,
@@ -27,10 +27,33 @@ where
   active = true;
 ```
 
+```sql+sqlite
+select
+  first_name,
+  last_name,
+  email 
+from
+  servicenow_now_consumer 
+where
+  active = 1;
+```
+
 ### How many consumers are there in each state?
 Determine the distribution of consumers across various states to understand regional demographics and market penetration. This query can help guide decisions on resource allocation, targeted marketing, and expansion strategies.
 
-```sql
+```sql+postgres
+select
+  state,
+  count(*) as num_consumers 
+from
+  servicenow_now_consumer 
+group by
+  state 
+order by
+  state desc;
+```
+
+```sql+sqlite
 select
   state,
   count(*) as num_consumers 
@@ -45,7 +68,16 @@ order by
 ### What is the total number of consumers who doesn't have a mobile phone number listed?
 Discover the segments that consist of consumers without a listed mobile phone number. This can help in identifying potential gaps in your customer communication channels.
 
-```sql
+```sql+postgres
+select
+  count(*) 
+from
+  servicenow_now_consumer 
+where
+  mobile_phone is null;
+```
+
+```sql+sqlite
 select
   count(*) 
 from
@@ -57,7 +89,19 @@ where
 ### What is the most common prefix for consumer names?
 Explore which prefix is most frequently used among consumer names, helping to identify common naming conventions and patterns. This could be particularly useful for data organization and customer segmentation strategies.
 
-```sql
+```sql+postgres
+select
+  prefix,
+  count(*) as num_consumers 
+from
+  servicenow_now_consumer 
+group by
+  prefix 
+order by
+  num_consumers desc limit 1;
+```
+
+```sql+sqlite
 select
   prefix,
   count(*) as num_consumers 
@@ -72,7 +116,16 @@ order by
 ### How many consumers have an email address that contains the word "gmail"?
 Explore how many consumers have registered with an email address that includes the word 'gmail'. This can be useful for understanding the popularity of different email service providers among your consumers.
 
-```sql
+```sql+postgres
+select
+  count(*) 
+from
+  servicenow_now_consumer 
+where
+  email like '%gmail%';
+```
+
+```sql+sqlite
 select
   count(*) 
 from
@@ -84,7 +137,16 @@ where
 ### Which consumers have a title that contains the word "Manager"?
 Discover the segments that include individuals with managerial roles. This query can be used to identify those consumers who hold a title containing the term "Manager", which can be useful in tailoring communication or resources for this specific group.
 
-```sql
+```sql+postgres
+select
+  * 
+from
+  servicenow_now_consumer 
+where
+  title like '%Manager%';
+```
+
+```sql+sqlite
 select
   * 
 from
@@ -96,7 +158,16 @@ where
 ### How many consumers have a photo attached to their record?
 Discover the segments that have consumers with photos attached to their records. This is useful for understanding the extent of user engagement and personalization within your platform.
 
-```sql
+```sql+postgres
+select
+  count(*) 
+from
+  servicenow_now_consumer 
+where
+  photo is not null;
+```
+
+```sql+sqlite
 select
   count(*) 
 from

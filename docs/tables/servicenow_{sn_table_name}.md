@@ -45,7 +45,7 @@ List all tables with:
 ### How many tasks were closed in the last 30 days?
 Determine the number of tasks that were finalized within the past month. This is useful for tracking productivity and understanding the recent workload.
 
-```sql
+```sql+postgres
 select
   count(*) as closed_tasks 
 from
@@ -55,10 +55,32 @@ where
   and closed_at >= now() - interval '30 days';
 ```
 
+```sql+sqlite
+select
+  count(*) as closed_tasks 
+from
+  servicenow_task 
+where
+  state = '4' 
+  and closed_at >= datetime('now', '-30 days');
+```
+
 ### How many tasks have been created by each user?
 Discover the productivity levels of each user by analyzing the number of tasks they have created. This can be useful for workload management and identifying high-performing individuals.  
 
-```sql
+```sql+postgres
+select
+  sys_created_by,
+  count(*) as num_tasks_created 
+from
+  servicenow_task 
+group by
+  sys_created_by 
+order by
+  sys_created_by;
+```
+
+```sql+sqlite
 select
   sys_created_by,
   count(*) as num_tasks_created 
@@ -73,11 +95,20 @@ order by
 ### How many tasks have been opened in the last 24 hours?
 Assess the volume of tasks initiated within the past day to understand recent workload and resource allocation needs. This can help in managing team capacity and planning for future task assignments.
 
-```sql
+```sql+postgres
 select
   count(*) as num_tasks 
 from
   servicenow_task 
 where
   opened_at >= now() - interval '24 hours';
+```
+
+```sql+sqlite
+select
+  count(*) as num_tasks 
+from
+  servicenow_task 
+where
+  opened_at >= datetime('now', '-24 hours');
 ```

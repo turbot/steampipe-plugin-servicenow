@@ -16,7 +16,15 @@ The `servicenow_cmdb_ci` table provides insights into the Configuration Items (C
 ### List CMDB Configuration Item name, asset tag, serial number
 Explore the inventory of Configuration Items (CIs) to keep track of their names, asset tags, and serial numbers. This query is particularly useful for auditing and asset management purposes.
 
-```sql
+```sql+postgres
+select
+  ci.name, ci.asset_tag, ci.serial_number
+from
+  servicenow_cmdb_ci ci
+limit 100;
+```
+
+```sql+sqlite
 select
   ci.name, ci.asset_tag, ci.serial_number
 from
@@ -27,7 +35,19 @@ limit 100;
 ### Retrieve a list of all CIs that are currently down or experiencing issues
 Explore which Configuration Items (CIs) are currently not functioning optimally or facing issues. This can aid in quickly identifying problematic areas and taking necessary corrective actions.
 
-```sql
+```sql+postgres
+select
+  sys_id,
+  name,
+  sys_class_name,
+  short_description
+from
+  servicenow_cmdb_ci
+where
+  operational_status != '1';
+```
+
+```sql+sqlite
 select
   sys_id,
   name,
@@ -42,7 +62,7 @@ where
 ### Identify all CIs that have been recently modified or updated
 Explore which Configuration Items (CIs) have undergone changes in the past week. This is useful in understanding recent system changes and potentially identifying any unexpected or unauthorized modifications.
 
-```sql
+```sql+postgres
 select
   sys_id,
   name,
@@ -54,10 +74,34 @@ where
   sys_updated_on > now() - interval '7 days';
 ```
 
+```sql+sqlite
+select
+  sys_id,
+  name,
+  sys_class_name,
+  short_description
+from
+  servicenow_cmdb_ci
+where
+  sys_updated_on > datetime('now', '-7 days');
+```
+
 ### Get a list of all CIs that have been retired or decommissioned
 Explore which Configuration Items (CIs) have been decommissioned or retired. This can be useful in assessing the lifecycle of your resources and planning for replacement or upgrades.
 
-```sql
+```sql+postgres
+select
+  sys_id,
+  name,
+  sys_class_name,
+  short_description
+from
+  servicenow_cmdb_ci
+where
+  install_status = '7';
+```
+
+```sql+sqlite
 select
   sys_id,
   name,
@@ -72,7 +116,25 @@ where
 ### Find all CIs that are currently undergoing maintenance or repair
 Explore which Configuration Items (CIs) are currently under maintenance or repair. This is useful in managing system downtime and planning resource allocation.
 
-```sql
+```sql+postgres
+select
+  sys_id,
+  name,
+  sys_class_name,
+  short_description
+from
+  servicenow_cmdb_ci
+where
+  sys_id in (
+    select cmdb_ci
+    from servicenow_task
+    where
+      state in (3,4) and
+      short_description like '%maintenance%'
+    );
+```
+
+```sql+sqlite
 select
   sys_id,
   name,
@@ -93,7 +155,19 @@ where
 ### Retrieve all CIs with a specific serial number
 Explore which Configuration Items (CIs) share a common serial number. This can be useful in tracking and managing assets within your IT environment.
 
-```sql
+```sql+postgres
+select
+  sys_id,
+  name,
+  sys_class_name,
+  short_description
+from
+  servicenow_cmdb_ci
+where
+  serial_number = '123456789';
+```
+
+```sql+sqlite
 select
   sys_id,
   name,

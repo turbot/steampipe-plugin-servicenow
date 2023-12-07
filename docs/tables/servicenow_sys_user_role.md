@@ -16,7 +16,7 @@ The `servicenow_sys_user_role` table provides insights into user roles within Se
 ### Roles considered elevated privileges
 Discover the segments that have elevated privileges in the ServiceNow user role system. This can be useful to identify potential risks or security concerns within your system.
 
-```sql
+```sql+postgres
 select
   name 
 from
@@ -25,10 +25,19 @@ where
   elevated_privilege = true;
 ```
 
+```sql+sqlite
+select
+  name 
+from
+  servicenow_sys_user_role 
+where
+  elevated_privilege = 1;
+```
+
 ### Roles that can be granted independently
 Identify roles within ServiceNow that are permitted to be granted independently. This allows for a more flexible and customizable management of user permissions within the system.
 
-```sql
+```sql+postgres
 select
   name 
 from
@@ -37,10 +46,28 @@ where
   grantable = true;
 ```
 
+```sql+sqlite
+select
+  name 
+from
+  servicenow_sys_user_role 
+where
+  grantable = 1;
+```
+
 ### Roles that require a subscription
 Determine the roles that necessitate a subscription within your ServiceNow environment. This can be useful for managing access and budgeting resources.
 
-```sql
+```sql+postgres
+select
+  name 
+from
+  servicenow_sys_user_role 
+where
+  requires_subscription = 'yes';
+```
+
+```sql+sqlite
 select
   name 
 from
@@ -52,7 +79,7 @@ where
 ### Roles that can be delegated
 Identify instances where certain roles can be delegated within the ServiceNow system. This is useful in understanding the hierarchy and distribution of responsibilities within your organization.
 
-```sql
+```sql+postgres
 select
   name 
 from
@@ -61,10 +88,19 @@ where
   can_delegate = true;
 ```
 
+```sql+sqlite
+select
+  name 
+from
+  servicenow_sys_user_role 
+where
+  can_delegate = 1;
+```
+
 ### Scoped administrator roles
 Explore which roles in ServiceNow have been assigned scoped administrator privileges. This can help manage security and access control within your organization.
 
-```sql
+```sql+postgres
 select
   name 
 from
@@ -73,10 +109,29 @@ where
   scoped_admin = true;
 ```
 
+```sql+sqlite
+select
+  name 
+from
+  servicenow_sys_user_role 
+where
+  scoped_admin = 1;
+```
+
 ### Roles that include other roles
 Discover the segments that have embedded roles within them in your ServiceNow user roles, to better manage and understand your system's access control hierarchy. This can be beneficial in identifying potential security risks or redundancies.
 
-```sql
+```sql+postgres
+select
+  name,
+  includes_roles 
+from
+  servicenow_sys_user_role 
+where
+  includes_roles is not null;
+```
+
+```sql+sqlite
 select
   name,
   includes_roles 
@@ -89,7 +144,17 @@ where
 ### Roles requiring 'Assignable By' role
 Discover the roles that require an 'Assignable By' role for allocation, enabling you to manage and delegate user permissions effectively.
 
-```sql
+```sql+postgres
+select
+  name,
+  assignable_by 
+from
+  servicenow_sys_user_role 
+where
+  assignable_by is not null;
+```
+
+```sql+sqlite
 select
   name,
   assignable_by 
@@ -102,7 +167,16 @@ where
 ### Sys_id and description of a specific role
 Determine the unique system identifier and description of a specific user role within a ServiceNow environment. This can be useful for understanding the permissions and capabilities associated with that role.
 
-```sql
+```sql+postgres
+select
+  sys_id description 
+from
+  servicenow_sys_user_role 
+where
+  name = 'pdb_user';
+```
+
+```sql+sqlite
 select
   sys_id description 
 from

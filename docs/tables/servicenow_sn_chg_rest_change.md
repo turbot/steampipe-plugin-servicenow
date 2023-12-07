@@ -16,7 +16,19 @@ The `servicenow_sn_chg_rest_change` table provides insights into change requests
 ### What are the most common category for change requests?
 Discover the segments that have the highest frequency of change requests, helping prioritize areas for process improvement or resource allocation.
 
-```sql
+```sql+postgres
+select
+  category,
+  count(*) as cnt 
+from
+  servicenow_sn_chg_rest_change 
+group by
+  category 
+order by
+  cnt desc limit 5;
+```
+
+```sql+sqlite
 select
   category,
   count(*) as cnt 
@@ -31,7 +43,17 @@ order by
 ### How many change requests are currently open for a specific category?
 Discover the number of ongoing change requests in a specific category, such as 'network'. This is useful for tracking and managing workload related to different types of change requests.
 
-```sql
+```sql+postgres
+select
+  count(*) 
+from
+  servicenow_sn_chg_rest_change 
+where
+  state != 3 
+  and category = 'network';
+```
+
+```sql+sqlite
 select
   count(*) 
 from
@@ -44,7 +66,16 @@ where
 ### How many changes are in the "work in progress" state?
 Analyze the number of changes that are currently in the 'work in progress' state. This is useful for tracking progress and managing workload in a service management context.
 
-```sql
+```sql+postgres
+select
+  count(*) as num_changes 
+from
+  servicenow_sn_chg_rest_change 
+where
+  state = 2;
+```
+
+```sql+sqlite
 select
   count(*) as num_changes 
 from
@@ -56,7 +87,17 @@ where
 ### What is the average duration of changes made by each user?
 Analyze the average time taken by each user to make changes, which could be useful for assessing individual productivity or identifying inefficiencies in the change process.
 
-```sql
+```sql+postgres
+select
+  user,
+  avg(duration) as avg_duration 
+from
+  servicenow_sn_chg_rest_change 
+group by
+  user;
+```
+
+```sql+sqlite
 select
   user,
   avg(duration) as avg_duration 
@@ -69,7 +110,17 @@ group by
 ### How many changes are in the "scheduled" state and have a "high" priority?
 Determine the volume of high-priority tasks that are currently scheduled. This can assist in gauging the workload and prioritizing resource allocation.
 
-```sql
+```sql+postgres
+select
+  count(*) as num_changes 
+from
+  servicenow_sn_chg_rest_change 
+where
+  state = 1 
+  and priority = 2;
+```
+
+```sql+sqlite
 select
   count(*) as num_changes 
 from

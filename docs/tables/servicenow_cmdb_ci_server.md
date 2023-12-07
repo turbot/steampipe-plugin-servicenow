@@ -16,7 +16,18 @@ The `servicenow_cmdb_ci_server` table provides insights into Configuration Item 
 ### List servers with their IP addresses and OS versions
 Explore which servers are associated with specific IP addresses and operating systems. This is useful for maintaining an organized inventory of your servers and understanding their configurations.
 
-```sql
+```sql+postgres
+select
+  name,
+  ip_address,
+  os 
+from
+  servicenow_cmdb_ci_server
+order by
+  name;
+```
+
+```sql+sqlite
 select
   name,
   ip_address,
@@ -30,7 +41,17 @@ order by
 ### Number of servers running each OS version
 Gain insights into the distribution of operating systems across your servers. This query helps in understanding the spread of different OS versions, enabling strategic decisions for software compatibility and updates.
 
-```sql
+```sql+postgres
+select
+  os,
+  count(*)
+from
+  servicenow_cmdb_ci_server 
+group by
+  os;
+```
+
+```sql+sqlite
 select
   os,
   count(*)
@@ -43,7 +64,7 @@ group by
 ### List all servers that have been in running for more than 3 years
 Explore servers that have been operating for an extended period, specifically those running for over three years. This can aid in identifying potential maintenance needs or assessing the longevity and reliability of your server infrastructure.
 
-```sql
+```sql+postgres
 select
   name,
   sys_updated_on 
@@ -54,10 +75,32 @@ where
   install_status = 1;
 ```
 
+```sql+sqlite
+select
+  name,
+  sys_updated_on 
+from
+  servicenow_cmdb_ci_server 
+where
+  sys_created_on <= datetime('now', '-3 years') and
+  install_status = 1;
+```
+
 ### List the servers with a specific serial number
 Discover the servers that have a specific serial number. This can be beneficial for understanding the distribution and usage of a particular server model within your infrastructure.
 
-```sql
+```sql+postgres
+select
+  name,
+  serial_number,
+  ip_address
+from
+  servicenow_cmdb_ci_server
+where
+  serial_number = '478933-e78-8823';
+```
+
+```sql+sqlite
 select
   name,
   serial_number,

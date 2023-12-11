@@ -118,7 +118,4 @@ export SERVICENOW_CLIENT_ID=9148ce34f5252110392c96f819dbd422
 export SERVICENOW_CLIENT_SECRET=Ly#2auTd
 ```
 
-## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-servicenow
-- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)

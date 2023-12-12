@@ -26,7 +26,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
-			Schema:      ConfigSchema,
 		},
 		SchemaMode:   plugin.SchemaModeDynamic,
 		TableMapFunc: pluginTableDefinitions,

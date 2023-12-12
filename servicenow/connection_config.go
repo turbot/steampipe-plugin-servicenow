@@ -2,40 +2,15 @@ package servicenow
 
 import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/schema"
 )
 
 type servicenowConfig struct {
-	InstanceURL  *string   `cty:"instance_url"`
-	ClientID     *string   `cty:"client_id"`
-	ClientSecret *string   `cty:"client_secret"`
-	Username     *string   `cty:"username"`
-	Password     *string   `cty:"password"`
-	Objects      *[]string `cty:"objects"`
-}
-
-var ConfigSchema = map[string]*schema.Attribute{
-	"instance_url": {
-		Type: schema.TypeString,
-	},
-	"client_id": {
-		Type: schema.TypeString,
-	},
-	"client_secret": {
-		Type: schema.TypeString,
-	},
-	"username": {
-		Type: schema.TypeString,
-	},
-	"password": {
-		Type: schema.TypeString,
-	},
-	"objects": {
-		Type: schema.TypeList,
-		Elem: &schema.Attribute{
-			Type: schema.TypeString,
-		},
-	},
+	InstanceURL  *string   `hcl:"instance_url"`
+	ClientID     *string   `hcl:"client_id"`
+	ClientSecret *string   `hcl:"client_secret"`
+	Username     *string   `hcl:"username"`
+	Password     *string   `hcl:"password"`
+	Objects      *[]string `hcl:"objects"`
 }
 
 func ConfigInstance() interface{} {

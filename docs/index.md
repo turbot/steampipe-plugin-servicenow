@@ -8,13 +8,14 @@ name: "servicenow"
 description: "Use SQL to query CMDB CI services, servers, incidents, objects and more from ServiceNow."
 og_description: "Query ServiceNow with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/servicenow-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # ServiceNow + Steampipe
 
 [ServiceNow](https://www.servicenow.com/) is a cloud-based platform that provides digital workflows to help businesses improve their operational efficiency and enhance customer and employee experiences.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
 For example:
 
@@ -117,7 +118,4 @@ export SERVICENOW_CLIENT_ID=9148ce34f5252110392c96f819dbd422
 export SERVICENOW_CLIENT_SECRET=Ly#2auTd
 ```
 
-## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-servicenow
-- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)

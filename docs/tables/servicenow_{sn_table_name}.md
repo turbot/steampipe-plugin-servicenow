@@ -1,15 +1,15 @@
 ---
-title: "Steampipe Table: servicenow_{sn_table_name} - Query ServiceNow {OCI_resource} using SQL"
-description: "Allows users to query {OCI_resource} in ServiceNow, providing insights into service management data and potential service anomalies."
+title: "Steampipe Table: servicenow_{sn_table_name} - Query ServiceNow tables using SQL"
+description: "Allows users to query tables in ServiceNow, providing insights into service management data and potential service anomalies."
 ---
 
-# Table: servicenow_{sn_table_name} - Query ServiceNow {OCI_resource} using SQL
+# Table: servicenow_{sn_table_name} - Query ServiceNow tables using SQL
 
 ServiceNow is a cloud-based platform that provides solutions for IT Service Management (ITSM), IT Operations Management (ITOM), and IT Business Management (ITBM). It helps organizations manage digital workflows, thereby increasing productivity by creating, reading, and updating data for various service management processes. ServiceNow offers a range of IT service management options for on-premise and cloud-based applications.
 
 ## Table Usage Guide
 
-The `servicenow_{sn_table_name}` table provides insights into {OCI_resource} within ServiceNow. As a ServiceNow administrator or IT service manager, explore {OCI_resource}-specific details through this table, including status, assignment groups, and associated metadata. Utilize it to uncover information about {OCI_resource}, such as those with high priority, the assignment groups of {OCI_resource}, and the verification of service level agreements.
+The `servicenow_{sn_table_name}` table provides insights into ServiceNow tables. As a ServiceNow administrator or IT service manager, explore custom table-specific details, including status, assignment groups, and associated metadata. Utilize it to uncover information about ServiceNow tables, such as those with high priority, the assignment groups of tables, and the verification of service level agreements.
 
 ## Examples
 

@@ -1,3 +1,9 @@
+## v0.3.1 [2024-01-08]
+
+_Bug fixes_
+
+- Fixed the plugin to return only static tables instead of an error when the `objects` config argument is not set or credentials are not set correctly. ([#26](https://github.com/turbot/steampipe-plugin-servicenow/pull/26))
+
 ## v0.3.0 [2023-12-12]
 
 _What's new?_

@@ -40,11 +40,6 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		ConnectionCache: d.ConnectionCache,
 	}
 
-	client, err := Connect(ctx, qd)
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize tables with static tables with static and dynamic columns(if credentials are set)
 	tables := map[string]*plugin.Table{
 		"servicenow_cmdb_ci_server":                              tableServicenowCmdbCiServer(),
@@ -68,12 +63,19 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		"servicenow_sys_user":                                    tableServicenowSysUser(),
 	}
 
+
+	config := GetConfig(d.Connection)
+	if config.Objects == nil || len(*config.Objects) == 0 {
+		return tables, nil
+	}
+
 	var re = regexp.MustCompile(`\d+`)
 	var substitution = ``
 	servicenowTables := []string{}
-	config := GetConfig(d.Connection)
-	if config.Objects != nil && len(*config.Objects) > 0 {
-		servicenowTables = append(servicenowTables, *config.Objects...)
+	servicenowTables = append(servicenowTables, *config.Objects...)
+	client, err := Connect(ctx, qd)
+	if err != nil {
+		return nil, err
 	}
 
 	builder, err := NewServiceNowTableBuilder(client)

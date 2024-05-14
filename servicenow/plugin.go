@@ -27,6 +27,12 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
 		},
+		ConnectionKeyColumns: []plugin.ConnectionKeyColumn{
+			{
+				Name:    "instance_url",
+				Hydrate: getInstanceUrl,
+			},
+		},
 		SchemaMode:   plugin.SchemaModeDynamic,
 		TableMapFunc: pluginTableDefinitions,
 	}
@@ -62,7 +68,6 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		"servicenow_sys_user_role":                               tableServicenowSysUserRole(),
 		"servicenow_sys_user":                                    tableServicenowSysUser(),
 	}
-
 
 	config := GetConfig(d.Connection)
 	if config.Objects == nil || len(*config.Objects) == 0 {

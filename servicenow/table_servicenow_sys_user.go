@@ -22,7 +22,7 @@ func tableServicenowSysUser() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysUserTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "accumulated_roles", Description: "Roles accumulated by the user.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "accumulated_roles")},
 			{Name: "active", Description: "Indicates if the user is active.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "active")},
 			{Name: "avatar", Description: "Avatar image for the user.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "avatar")},
@@ -88,6 +88,6 @@ func tableServicenowSysUser() *plugin.Table {
 			{Name: "vip", Description: "Indicates if the user is a VIP.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "vip")},
 			{Name: "web_service_access_only", Description: "Indicates if the user has access only through web services.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "web_service_access_only")},
 			{Name: "zip", Description: "ZIP or postal code of the user.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "zip")},
-		},
+		}),
 	}
 }

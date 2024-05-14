@@ -22,7 +22,7 @@ func tableServicenowSysUserGroupMember() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysUserGroupMemberTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "sys_mod_count", Description: "Number of times the record was modified.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "sys_mod_count")},
 			{Name: "group", Description: "User group to which the user is a member.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "group")},
 			{Name: "sys_created_by", Description: "User who created the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_created_by")},
@@ -31,6 +31,6 @@ func tableServicenowSysUserGroupMember() *plugin.Table {
 			{Name: "sys_updated_by", Description: "User who last updated the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_by")},
 			{Name: "sys_updated_on", Description: "Date and time when the record was last updated.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_on").Transform(parseDateTime)},
 			{Name: "user", Description: "User who is a member of the user group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "user")},
-		},
+		}),
 	}
 }

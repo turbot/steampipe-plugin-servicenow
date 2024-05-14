@@ -23,7 +23,7 @@ func tableServicenowCmdbCi() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(CmdbCITableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "asset_tag", Description: "Unique identifier for the asset.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "asset_tag")},
 			{Name: "asset", Description: "The asset associated with the configuration item.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "asset")},
 			{Name: "assigned_to", Description: "Person or group assigned to the configuration item.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "assigned_to")},
@@ -104,6 +104,6 @@ func tableServicenowCmdbCi() *plugin.Table {
 			{Name: "unverified", Description: "Flag indicating if the configuration item is unverified.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "unverified")},
 			{Name: "vendor", Description: "Vendor associated with the configuration item.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "vendor")},
 			{Name: "warranty_expiration", Description: "Expiration date of the warranty for the configuration item.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "warranty_expiration")},
-		},
+		}),
 	}
 }

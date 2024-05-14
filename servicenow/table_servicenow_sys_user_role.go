@@ -22,7 +22,7 @@ func tableServicenowSysUserRole() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysUserRoleTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "assignable_by", Description: "Roles that can assign this user role.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "assignable_by")},
 			{Name: "can_delegate", Description: "Indicates if users with this role can delegate tasks.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "can_delegate")},
 			{Name: "description", Description: "Description or details of the user role.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "description")},
@@ -45,6 +45,6 @@ func tableServicenowSysUserRole() *plugin.Table {
 			{Name: "sys_update_name", Description: "User who last updated the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_update_name")},
 			{Name: "sys_updated_by", Description: "User who last updated the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_by")},
 			{Name: "sys_updated_on", Description: "Date and time when the record was last updated.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_on").Transform(parseDateTime)},
-		},
+		}),
 	}
 }

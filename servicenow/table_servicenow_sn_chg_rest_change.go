@@ -22,7 +22,7 @@ func tableServicenowSnChgRestChange() *plugin.Table {
 			Hydrate:    getServicenowSnChgRestChanges,
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "sys_id", Description: "Unique identifier of the associated change request record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_id").NullIfEqual("")},
 			{Name: "action_status", Description: "Current action status of the associated change request.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldValue, "action_status").NullIfEqual("")},
 			{Name: "active", Description: "Flag that indicates whether the change request is active.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "active").NullIfEqual("")},
@@ -134,7 +134,7 @@ func tableServicenowSnChgRestChange() *plugin.Table {
 			{Name: "work_notes", Description: "Information about how to resolve the change request, or steps taken to resolve it.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "work_notes").NullIfEqual("")},
 			{Name: "work_notes_list", Description: "List of sys_ids of the internal users who receive notifications about this change request when work notes are added. Located in the User [sys_user] table.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldValue, "work_notes_list").NullIfEqual("")},
 			{Name: "work_start", Description: "Date and time that work started on the change request.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "work_start").NullIfEqual("")},
-		},
+		}),
 	}
 }
 

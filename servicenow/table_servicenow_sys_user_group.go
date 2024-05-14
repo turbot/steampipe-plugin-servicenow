@@ -22,7 +22,7 @@ func tableServicenowSysUserGroup() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysUserGroupTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "active", Description: "Indicates whether the user group is active or inactive.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "active")},
 			{Name: "cost_center", Description: "Cost center associated with the user group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "cost_center")},
 			{Name: "default_assignee", Description: "Default user assigned to tasks assigned to the user group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "default_assignee")},
@@ -42,6 +42,6 @@ func tableServicenowSysUserGroup() *plugin.Table {
 			{Name: "sys_updated_by", Description: "User who last updated the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_by")},
 			{Name: "sys_updated_on", Description: "Date and time when the record was last updated.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_on").Transform(parseDateTime)},
 			{Name: "type", Description: "Type of the user group.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "type")},
-		},
+		}),
 	}
 }

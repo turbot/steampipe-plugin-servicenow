@@ -22,7 +22,7 @@ func tableServicenowSysAudit() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysAuditTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "documentkey", Description: "Key of the audited document or record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "documentkey")},
 			{Name: "fieldname", Description: "Name of the field that was audited.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "fieldname")},
 			{Name: "internal_checkpoint", Description: "Checkpoint value used for internal tracking.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "internal_checkpoint")},
@@ -35,6 +35,6 @@ func tableServicenowSysAudit() *plugin.Table {
 			{Name: "sys_id", Description: "Unique system identifier for the audit record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_id")},
 			{Name: "tablename", Description: "Name of the table that was audited.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "tablename")},
 			{Name: "user", Description: "User associated with the audit record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "user")},
-		},
+		}),
 	}
 }

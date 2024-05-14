@@ -23,7 +23,7 @@ func tableServicenowCmdbCiService() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(CmdbCIServiceTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "aliases", Description: "Alternative names or aliases for the service.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "aliases")},
 			{Name: "asset_tag", Description: "Tag or label associated with the asset.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "asset_tag")},
 			{Name: "asset", Description: "Asset associated with the service.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "asset")},
@@ -136,6 +136,6 @@ func tableServicenowCmdbCiService() *plugin.Table {
 			{Name: "vendor", Description: "Vendor or supplier of the service.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "vendor")},
 			{Name: "version", Description: "Version or release of the service.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "version")},
 			{Name: "warranty_expiration", Description: "Expiration date of the warranty for the service.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "warranty_expiration")},
-		},
+		}),
 	}
 }

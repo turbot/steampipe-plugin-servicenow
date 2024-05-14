@@ -22,7 +22,7 @@ func tableServicenowSnChgRestChangeModel() *plugin.Table {
 			Hydrate:    getServicenowSnChgRestChangeModels,
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "sys_id", Description: "Unique identifier of the associated change model record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_id").NullIfEqual("")},
 			{Name: "active", Description: "Flag that indicates whether the associated change model record is active and available within the instance.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "active").NullIfEqual("")},
 			{Name: "available_in_ui", Description: "Flag that indicates whether the associated change model record is available within the user interface.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "available_in_ui").NullIfEqual("")},
@@ -43,7 +43,7 @@ func tableServicenowSnChgRestChangeModel() *plugin.Table {
 			{Name: "sys_updated_by", Description: "Name of the user that last updated the associated change model record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_updated_by").NullIfEqual("")},
 			{Name: "sys_updated_on", Description: "Date and time the associated change model record was last updated.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_updated_on").NullIfEqual("")},
 			{Name: "table_name", Description: "Table that defines the Choice list field from which to collect choices. For change models this is always set to 'change_request'.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "table_name").NullIfEqual("")},
-		},
+		}),
 	}
 }
 

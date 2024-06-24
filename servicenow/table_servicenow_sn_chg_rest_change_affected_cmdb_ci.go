@@ -19,7 +19,7 @@ func tableServicenowSnChgRestChangeAffectedCmdbCi() *plugin.Table {
 			Hydrate:       listServicenowSnChgRestChangeAffectedCmdbCis,
 			ParentHydrate: listServicenowSnChgRestChanges,
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "applied_date", Description: "Date when the change was applied to the CMDB CI item.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldValue, "applied_date").NullIfEqual("").Transform(parseDateTime)},
 			{Name: "ci_item_sys_id", Description: "System ID of the CMDB CI item affected by the change.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "ci_item").NullIfEqual("")},
 			{Name: "sys_created_by", Description: "User who created the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "sys_created_by").NullIfEqual("")},
@@ -34,7 +34,7 @@ func tableServicenowSnChgRestChangeAffectedCmdbCi() *plugin.Table {
 			{Name: "applied", Description: "Indicates whether the change was applied to the CI item.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "applied").NullIfEqual("")},
 			{Name: "ci_item_name", Description: "Name of the CI item affected by the change.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldDisplayValue, "ci_item").NullIfEqual("")},
 			{Name: "manual_proposed_change", Description: "Indicates whether the proposed change was manual.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "manual_proposed_change").NullIfEqual("")},
-		},
+		}),
 	}
 }
 

@@ -22,7 +22,7 @@ func tableServicenowNowConsumer() *plugin.Table {
 			Hydrate:    getServicenowNowConsumers,
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "sys_id", Description: "Unique identifier for the consumer.", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "active", Description: "Flag that indicates whether the consumer is active.", Type: proto.ColumnType_BOOL},
 			{Name: "business_phone", Description: "Business phone number of the consumer.", Type: proto.ColumnType_STRING},
@@ -61,7 +61,7 @@ func tableServicenowNowConsumer() *plugin.Table {
 			{Name: "title", Description: "Consumer business title such as Manager, Software Developer, or Contractor.", Type: proto.ColumnType_STRING},
 			{Name: "user", Description: "Sys_id of the consumer user. Located in the Consumer User [csm_consumer_user] table.", Type: proto.ColumnType_STRING},
 			{Name: "zip", Description: "Consumer zip code.", Type: proto.ColumnType_STRING},
-		},
+		}),
 	}
 }
 

@@ -19,7 +19,7 @@ func tableServicenowSnChgRestChangeImpactedCmdbCiService() *plugin.Table {
 			Hydrate:       listServicenowSnChgRestChangeImpactedCmdbCiServices,
 			ParentHydrate: listServicenowSnChgRestChanges,
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "cmdb_ci_service_name", Description: "Name of the CMDB CI service impacted by the change.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldDisplayValue, "cmdb_ci_service").NullIfEqual("")},
 			{Name: "cmdb_ci_service_sys_id", Description: "System ID of the CMDB CI service impacted by the change.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "cmdb_ci_service").NullIfEqual("")},
 			{Name: "manually_added", Description: "Indicates whether the CMDB CI service was manually added to the change.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "manually_added").NullIfEqual("")},
@@ -32,7 +32,7 @@ func tableServicenowSnChgRestChangeImpactedCmdbCiService() *plugin.Table {
 			{Name: "sys_updated_on", Description: "Date and time when the record was last updated.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldValue, "sys_updated_on").NullIfEqual("").Transform(parseDateTime)},
 			{Name: "task_name", Description: "Name of the task associated with the impacted CMDB CI service.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldDisplayValue, "task").NullIfEqual("")},
 			{Name: "task", Description: "Task associated with the impacted CMDB CI service.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "task").NullIfEqual("")},
-		},
+		}),
 	}
 }
 

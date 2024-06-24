@@ -19,7 +19,7 @@ func tableServicenowSnChgRestChangeTask() *plugin.Table {
 			Hydrate:       listServicenowSnChgRestChangeTasks,
 			ParentHydrate: listServicenowSnChgRestChanges,
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "active", Description: "Indicates whether the change task is active.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldValue, "active").NullIfEqual("")},
 			{Name: "activity_due", Description: "Due date for the activity associated with the change task.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "activity_due").NullIfEqual("")},
 			{Name: "additional_assignee_list", Description: "Additional users assigned to the change task.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "additional_assignee_list").NullIfEqual("")},
@@ -108,7 +108,7 @@ func tableServicenowSnChgRestChangeTask() *plugin.Table {
 			{Name: "work_notes_list", Description: "Work notes associated with the change task.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "work_notes_list").NullIfEqual("")},
 			{Name: "work_notes", Description: "Work notes added to the change task.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldDisplayValue, "work_notes").NullIfEqual("")},
 			{Name: "work_start", Description: "Start time of the work performed for the change task.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldValue, "work_start").NullIfEqual("")},
-		},
+		}),
 	}
 }
 

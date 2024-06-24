@@ -22,7 +22,7 @@ func tableServicenowSysGroupHasRole() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysGroupHasRoleTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "granted_by", Description: "User or group who granted the role to the group.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "granted_by")},
 			{Name: "group", Description: "User group to which the role is assigned.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "group")},
 			{Name: "inherits", Description: "Indicates whether the role is inherited.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "inherits")},
@@ -33,6 +33,6 @@ func tableServicenowSysGroupHasRole() *plugin.Table {
 			{Name: "sys_mod_count", Description: "Number of times the record was modified.", Type: proto.ColumnType_INT, Transform: transform.FromP(getFieldFromSObjectMap, "sys_mod_count")},
 			{Name: "sys_updated_by", Description: "User who last updated the record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_by")},
 			{Name: "sys_updated_on", Description: "Date and time when the record was last updated.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_updated_on").Transform(parseDateTime)},
-		},
+		}),
 	}
 }

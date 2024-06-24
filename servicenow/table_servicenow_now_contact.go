@@ -22,7 +22,7 @@ func tableServicenowNowContact() *plugin.Table {
 			Hydrate:    getServicenowNowContacts,
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "sys_id", Description: "Unique identifier for the associated contact record.", Type: proto.ColumnType_STRING, Transform: transform.FromField("SysID")},
 			{Name: "account", Description: "Sys_id of the account record to which the contact is associated; Account [customer_account] table.", Type: proto.ColumnType_STRING},
 			{Name: "active", Description: "Flag that indicates whether the contact is active within the system.", Type: proto.ColumnType_BOOL},
@@ -88,7 +88,7 @@ func tableServicenowNowContact() *plugin.Table {
 			{Name: "vip", Description: "Flag that indicates whether the associated contact has VIP status.", Type: proto.ColumnType_BOOL},
 			{Name: "web_service_access_only", Description: "Flag that indicates whether the contact can only access services through the web.", Type: proto.ColumnType_BOOL},
 			{Name: "zip", Description: "Contact zip code.", Type: proto.ColumnType_STRING},
-		},
+		}),
 	}
 }
 

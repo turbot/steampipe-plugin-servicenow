@@ -23,7 +23,7 @@ func tableServicenowIncident() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(IncidentTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "active", Description: "Indicates if the incident is currently active.", Type: proto.ColumnType_BOOL, Transform: transform.FromP(getFieldFromSObjectMap, "active")},
 			{Name: "activity_due", Description: "Due date and time for the current activity associated with the incident.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "activity_due").Transform(parseDateTime)},
 			{Name: "additional_assignee_list", Description: "List of additional users assigned to the incident.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "additional_assignee_list")},
@@ -121,6 +121,6 @@ func tableServicenowIncident() *plugin.Table {
 			{Name: "work_notes_list", Description: "List of work notes added to the incident.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "work_notes_list")},
 			{Name: "work_notes", Description: "Additional work notes or comments on the incident.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "work_notes")},
 			{Name: "work_start", Description: "Date and time when work on the incident starts.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "work_start").Transform(parseDateTime)},
-		},
+		}),
 	}
 }

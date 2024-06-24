@@ -22,7 +22,7 @@ func tableServicenowSysAuditRelation() *plugin.Table {
 			Hydrate:    getServicenowObjectbyID(SysAuditRelationTableName),
 			KeyColumns: plugin.SingleColumn("sys_id"),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			{Name: "audit", Description: "Reference to the audit record in the `sys_audit` table.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "audit")},
 			{Name: "audit_delete", Description: "Indicates if the relation is deleted during an audit deletion.", Type: proto.ColumnType_JSON, Transform: transform.FromP(getFieldFromSObjectMap, "audit_delete")},
 			{Name: "documentkey", Description: "Key of the related audited document or record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "documentkey")},
@@ -30,6 +30,6 @@ func tableServicenowSysAuditRelation() *plugin.Table {
 			{Name: "sys_created_on", Description: "Date and time when the audit relation record was created.", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromP(getFieldFromSObjectMap, "sys_created_on").Transform(parseDateTime)},
 			{Name: "sys_id", Description: "Unique system identifier for the audit relation record.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "sys_id")},
 			{Name: "tablename", Description: "Name of the table that is related to the audit.", Type: proto.ColumnType_STRING, Transform: transform.FromP(getFieldFromSObjectMap, "tablename")},
-		},
+		}),
 	}
 }

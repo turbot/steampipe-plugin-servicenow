@@ -74,7 +74,8 @@ func pluginTableDefinitions(ctx context.Context, d *plugin.TableMapData) (map[st
 		return tables, nil
 	}
 
-	var re = regexp.MustCompile(`\d+`)
+	// In PostgreSQL, table names must start with a letter (a-z) or an underscore (_). They cannot begin with a number
+	var re = regexp.MustCompile(`^\d+`)
 	var substitution = ``
 	servicenowTables := []string{}
 	servicenowTables = append(servicenowTables, *config.Objects...)

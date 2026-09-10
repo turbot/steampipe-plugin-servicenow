@@ -53,7 +53,6 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 				sanitizeTableObject(element)
 
 				d.StreamListItem(ctx, element)
-				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}

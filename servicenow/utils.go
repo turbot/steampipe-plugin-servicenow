@@ -20,36 +20,56 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 			continue
 		}
 
-		// Check only if filter qual map matches with optional column name
-		if filterQual.Name == filterQualItem.Name {
-			if filterQual.Quals == nil {
+		if filterQual.Name != filterQualItem.Name {
+			continue
+		}
+		if filterQual.Quals == nil {
+			continue
+		}
+
+		for _, qual := range filterQual.Quals {
+			if qual.Value == nil {
 				continue
 			}
 
-			for _, qual := range filterQual.Quals {
-				if qual.Value != nil {
-					value := qual.Value
-					switch filterQualItem.Type {
-					case proto.ColumnType_STRING:
-						// Ignore the IN clause
-						if value.GetListValue() != nil {
-							continue
-						}
-						switch qual.Operator {
-						case "=":
-							filters = append(filters, fmt.Sprintf("%s=%s", filterQualItem.Name, value.GetStringValue()))
-						case "<>":
-							filters = append(filters, fmt.Sprintf("%s!=%s", filterQualItem.Name, value.GetStringValue()))
-						}
-					case proto.ColumnType_INT:
-						if qual.Operator == "=" {
-							filters = append(filters, fmt.Sprintf("%s%s%d", filterQualItem.Name, qual.Operator, value.GetInt64Value()))
-						}
-					case proto.ColumnType_DOUBLE:
-						if qual.Operator == "=" {
-							filters = append(filters, fmt.Sprintf("%s%s%f", filterQualItem.Name, qual.Operator, value.GetDoubleValue()))
-						}
+			value := qual.Value
+			switch filterQualItem.Type {
+			case proto.ColumnType_STRING:
+				if value.GetListValue() != nil {
+					continue
+				}
+				switch qual.Operator {
+				case "=":
+					filters = append(filters, fmt.Sprintf("%s=%s", filterQualItem.Name, value.GetStringValue()))
+				case "<>":
+					filters = append(filters, fmt.Sprintf("%s!=%s", filterQualItem.Name, value.GetStringValue()))
+				}
+			case proto.ColumnType_INT:
+				op := snowOperator(qual.Operator)
+				if op != "" {
+					filters = append(filters, fmt.Sprintf("%s%s%d", filterQualItem.Name, op, value.GetInt64Value()))
+				}
+			case proto.ColumnType_DOUBLE:
+				op := snowOperator(qual.Operator)
+				if op != "" {
+					filters = append(filters, fmt.Sprintf("%s%s%f", filterQualItem.Name, op, value.GetDoubleValue()))
+				}
+			case proto.ColumnType_TIMESTAMP:
+				ts := value.GetTimestampValue()
+				if ts != nil {
+					t := ts.AsTime().UTC().Format("2006-01-02 15:04:05")
+					op := snowOperator(qual.Operator)
+					if op != "" {
+						filters = append(filters, fmt.Sprintf("%s%s%s", filterQualItem.Name, op, t))
 					}
+				}
+			case proto.ColumnType_BOOL:
+				if qual.Operator == "=" {
+					boolVal := "false"
+					if value.GetBoolValue() {
+						boolVal = "true"
+					}
+					filters = append(filters, fmt.Sprintf("%s=%s", filterQualItem.Name, boolVal))
 				}
 			}
 		}
@@ -60,6 +80,25 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 	}
 
 	return ""
+}
+
+func snowOperator(op string) string {
+	switch op {
+	case "=":
+		return "="
+	case "<>":
+		return "!="
+	case ">":
+		return ">"
+	case ">=":
+		return ">="
+	case "<":
+		return "<"
+	case "<=":
+		return "<="
+	default:
+		return ""
+	}
 }
 
 func ignoreError(errors []string) plugin.ErrorPredicateWithContext {

@@ -158,8 +158,10 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 		case "datetime":
 			column.Type = proto.ColumnType_TIMESTAMP
 			column.Transform.Transform(parseDateTime)
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "boolean":
 			column.Type = proto.ColumnType_BOOL
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"="}})
 		case "double", "decimal", "float":
 			column.Type = proto.ColumnType_DOUBLE
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})

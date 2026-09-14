@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/turbot/go-servicenow/servicenow"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -28,16 +29,13 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 		}
 
 		for _, qual := range filterQual.Quals {
-			if qual.Value == nil {
+			if qual.Value == nil || qual.Value.GetListValue() != nil {
 				continue
 			}
 
 			value := qual.Value
 			switch filterQualItem.Type {
 			case proto.ColumnType_STRING:
-				if value.GetListValue() != nil {
-					continue
-				}
 				switch qual.Operator {
 				case "=":
 					filters = append(filters, fmt.Sprintf("%s=%s", filterQualItem.Name, value.GetStringValue()))
@@ -55,13 +53,25 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 					filters = append(filters, fmt.Sprintf("%s%s%f", filterQualItem.Name, op, value.GetDoubleValue()))
 				}
 			case proto.ColumnType_TIMESTAMP:
+				// ServiceNow interprets datetime literals in the API user's timezone.
+				// Widen bounds by the max UTC offset so the API returns a superset;
+				// Steampipe re-applies the exact predicate client-side.
 				ts := value.GetTimestampValue()
-				if ts != nil {
-					t := ts.AsTime().UTC().Format("2006-01-02 15:04:05")
-					op := snowOperator(qual.Operator)
-					if op != "" {
-						filters = append(filters, fmt.Sprintf("%s%s%s", filterQualItem.Name, op, t))
-					}
+				if ts == nil {
+					continue
+				}
+				const maxOffset = 14 * time.Hour
+				const layout = "2006-01-02 15:04:05"
+				t := ts.AsTime().UTC()
+				switch qual.Operator {
+				case ">", ">=":
+					filters = append(filters, fmt.Sprintf("%s>=%s", filterQualItem.Name, t.Add(-maxOffset).Format(layout)))
+				case "<", "<=":
+					filters = append(filters, fmt.Sprintf("%s<=%s", filterQualItem.Name, t.Add(maxOffset).Format(layout)))
+				case "=":
+					filters = append(filters, fmt.Sprintf("%s>=%s^%s<=%s",
+						filterQualItem.Name, t.Add(-maxOffset).Format(layout),
+						filterQualItem.Name, t.Add(maxOffset).Format(layout)))
 				}
 			case proto.ColumnType_BOOL:
 				if qual.Operator == "=" {

@@ -19,11 +19,11 @@ func tableServicenowIncident() *plugin.Table {
 			KeyColumns: append(
 				plugin.OptionalColumns([]string{"additional_assignee_list", "approval_history", "approval", "business_impact", "category", "cause", "close_code", "close_notes", "comments_and_work_notes", "comments", "contact_type", "correlation_display", "correlation_id", "description", "group_list", "number", "origin_table", "short_description", "skills", "subcategory", "sys_class_name", "sys_created_by", "sys_domain_path", "sys_id", "sys_updated_by", "task_effective_number", "upon_approval", "upon_reject", "user_input", "variables", "watch_list", "work_notes_list", "work_notes"}),
 				[]*plugin.KeyColumn{
-					{Name: "priority", Require: plugin.Optional, Operators: []string{"=", "<>", ">", ">=", "<", "<="}},
-					{Name: "state", Require: plugin.Optional, Operators: []string{"=", "<>", ">", ">=", "<", "<="}},
-					{Name: "impact", Require: plugin.Optional, Operators: []string{"=", "<>", ">", ">=", "<", "<="}},
-					{Name: "urgency", Require: plugin.Optional, Operators: []string{"=", "<>", ">", ">=", "<", "<="}},
-					{Name: "severity", Require: plugin.Optional, Operators: []string{"=", "<>", ">", ">=", "<", "<="}},
+					{Name: "priority", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
+					{Name: "state", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
+					{Name: "impact", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
+					{Name: "urgency", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
+					{Name: "severity", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
 					{Name: "resolved_at", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
 					{Name: "opened_at", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
 					{Name: "closed_at", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},

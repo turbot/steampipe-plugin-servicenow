@@ -161,7 +161,7 @@ func generateDynamicTables(ctx context.Context, _ *plugin.TableMapData, builder 
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})
 		case "boolean":
 			column.Type = proto.ColumnType_BOOL
-			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"="}})
+			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", "<>"}})
 		case "double", "decimal", "float":
 			column.Type = proto.ColumnType_DOUBLE
 			keyColumns = append(keyColumns, &plugin.KeyColumn{Name: columnFieldName, Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<=", "<"}})

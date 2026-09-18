@@ -29,7 +29,7 @@ func tableServicenowIncident() *plugin.Table {
 					{Name: "closed_at", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
 					{Name: "sys_created_on", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
 					{Name: "sys_updated_on", Require: plugin.Optional, Operators: []string{"=", ">", ">=", "<", "<="}},
-					{Name: "active", Require: plugin.Optional, Operators: []string{"="}},
+					{Name: "active", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				}...,
 			),
 			Hydrate: listServicenowObjectsByTable(IncidentTableName, nil),

@@ -303,6 +303,127 @@ func TestSnowOperator(t *testing.T) {
 	}
 }
 
+func TestBoolEqualityTrue(t *testing.T) {
+	quals, cols := makeQualMapSingle("active", proto.ColumnType_BOOL, "=",
+		&proto.QualValue{Value: &proto.QualValue_BoolValue{BoolValue: true}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "active=true" {
+		t.Errorf("expected 'active=true', got '%s'", result)
+	}
+}
+
+func TestBoolNotEqualTrue(t *testing.T) {
+	quals, cols := makeQualMapSingle("active", proto.ColumnType_BOOL, "<>",
+		&proto.QualValue{Value: &proto.QualValue_BoolValue{BoolValue: true}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "active!=true" {
+		t.Errorf("expected 'active!=true', got '%s'", result)
+	}
+}
+
+func TestBoolNotEqualFalse(t *testing.T) {
+	quals, cols := makeQualMapSingle("active", proto.ColumnType_BOOL, "<>",
+		&proto.QualValue{Value: &proto.QualValue_BoolValue{BoolValue: false}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "active!=false" {
+		t.Errorf("expected 'active!=false', got '%s'", result)
+	}
+}
+
+func TestDoubleEquality(t *testing.T) {
+	quals, cols := makeQualMapSingle("cost", proto.ColumnType_DOUBLE, "=",
+		&proto.QualValue{Value: &proto.QualValue_DoubleValue{DoubleValue: 99.95}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "cost=99.95" {
+		t.Errorf("expected 'cost=99.95', got '%s'", result)
+	}
+}
+
+func TestDoubleGreaterThan(t *testing.T) {
+	quals, cols := makeQualMapSingle("cost", proto.ColumnType_DOUBLE, ">",
+		&proto.QualValue{Value: &proto.QualValue_DoubleValue{DoubleValue: 100.5}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "cost>100.5" {
+		t.Errorf("expected 'cost>100.5', got '%s'", result)
+	}
+}
+
+func TestDoubleHighPrecision(t *testing.T) {
+	quals, cols := makeQualMapSingle("rate", proto.ColumnType_DOUBLE, ">=",
+		&proto.QualValue{Value: &proto.QualValue_DoubleValue{DoubleValue: 0.0000006}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "rate>=0.0000006" {
+		t.Errorf("expected 'rate>=0.0000006', got '%s'", result)
+	}
+}
+
+func TestDoubleListValueSkipped(t *testing.T) {
+	cols := []*plugin.Column{{Name: "cost", Type: proto.ColumnType_DOUBLE}}
+	quals := plugin.KeyColumnQualMap{
+		"cost": &plugin.KeyColumnQuals{
+			Name: "cost",
+			Quals: quals.QualSlice{
+				&quals.Qual{
+					Column:   "cost",
+					Operator: "=",
+					Value: &proto.QualValue{Value: &proto.QualValue_ListValue{
+						ListValue: &proto.QualValueList{Values: []*proto.QualValue{
+							{Value: &proto.QualValue_DoubleValue{DoubleValue: 1.5}},
+							{Value: &proto.QualValue_DoubleValue{DoubleValue: 2.5}},
+						}},
+					}},
+				},
+			},
+		},
+	}
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "" {
+		t.Errorf("expected empty (list skipped), got '%s'", result)
+	}
+}
+
+func TestMultiColumnScalarQuals(t *testing.T) {
+	cols := []*plugin.Column{
+		{Name: "category", Type: proto.ColumnType_STRING},
+		{Name: "priority", Type: proto.ColumnType_INT},
+	}
+	qm := plugin.KeyColumnQualMap{
+		"category": &plugin.KeyColumnQuals{
+			Name: "category",
+			Quals: quals.QualSlice{
+				&quals.Qual{Column: "category", Operator: "=",
+					Value: &proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: "software"}}},
+			},
+		},
+		"priority": &plugin.KeyColumnQuals{
+			Name: "priority",
+			Quals: quals.QualSlice{
+				&quals.Qual{Column: "priority", Operator: "=",
+					Value: &proto.QualValue{Value: &proto.QualValue_Int64Value{Int64Value: 1}}},
+			},
+		},
+	}
+	result := buildQueryFromQuals(qm, cols, nil)
+	if !strings.Contains(result, "category=software") {
+		t.Errorf("expected 'category=software' in '%s'", result)
+	}
+	if !strings.Contains(result, "priority=1") {
+		t.Errorf("expected 'priority=1' in '%s'", result)
+	}
+	if !strings.Contains(result, "^") {
+		t.Errorf("expected '^' separator in '%s'", result)
+	}
+}
+
+func TestIntLessThanOrEqual(t *testing.T) {
+	quals, cols := makeQualMapSingle("priority", proto.ColumnType_INT, "<=",
+		&proto.QualValue{Value: &proto.QualValue_Int64Value{Int64Value: 3}})
+	result := buildQueryFromQuals(quals, cols, nil)
+	if result != "priority<=3" {
+		t.Errorf("expected 'priority<=3', got '%s'", result)
+	}
+}
+
 func TestNilValueSkipped(t *testing.T) {
 	cols := []*plugin.Column{{Name: "priority", Type: proto.ColumnType_INT}}
 	quals := plugin.KeyColumnQualMap{

@@ -3,6 +3,7 @@ package servicenow
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -50,7 +51,7 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 			case proto.ColumnType_DOUBLE:
 				op := snowOperator(qual.Operator)
 				if op != "" {
-					filters = append(filters, fmt.Sprintf("%s%s%f", filterQualItem.Name, op, value.GetDoubleValue()))
+					filters = append(filters, fmt.Sprintf("%s%s%s", filterQualItem.Name, op, strconv.FormatFloat(value.GetDoubleValue(), 'f', -1, 64)))
 				}
 			case proto.ColumnType_TIMESTAMP:
 				// ServiceNow interprets datetime literals in the API user's timezone.
@@ -74,12 +75,9 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 						filterQualItem.Name, t.Add(maxOffset).Format(layout)))
 				}
 			case proto.ColumnType_BOOL:
-				if qual.Operator == "=" {
-					boolVal := "false"
-					if value.GetBoolValue() {
-						boolVal = "true"
-					}
-					filters = append(filters, fmt.Sprintf("%s=%s", filterQualItem.Name, boolVal))
+				op := snowOperator(qual.Operator)
+				if op == "=" || op == "!=" {
+					filters = append(filters, fmt.Sprintf("%s%s%t", filterQualItem.Name, op, value.GetBoolValue()))
 				}
 			}
 		}

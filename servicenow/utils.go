@@ -30,7 +30,20 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 		}
 
 		for _, qual := range filterQual.Quals {
-			if qual.Value == nil || qual.Value.GetListValue() != nil {
+			if qual.Value == nil {
+				continue
+			}
+			if list := qual.Value.GetListValue(); list != nil {
+				// The SDK splits a single IN list into one call per value, but passes two or more
+				// lists through unaltered. The FDW still pushes the limit down for them, so integer
+				// lists are sent with ServiceNow's IN operator to keep the filter exact.
+				if filterQualItem.Type == proto.ColumnType_INT && qual.Operator == "=" && len(list.Values) > 0 {
+					values := make([]string, len(list.Values))
+					for i, v := range list.Values {
+						values[i] = strconv.FormatInt(v.GetInt64Value(), 10)
+					}
+					filters = append(filters, fmt.Sprintf("%sIN%s", filterQualItem.Name, strings.Join(values, ",")))
+				}
 				continue
 			}
 
@@ -107,6 +120,67 @@ func snowOperator(op string) string {
 	default:
 		return ""
 	}
+}
+
+// rowMatchesQuals applies the pushed down quals to a row exactly. The FDW pushes the limit down
+// when every qual is on a key column, so each row streamed must really match. Two cases are not
+// exact in sysparm_query: timestamp bounds are widened by the max UTC offset, and ServiceNow's
+// != also returns empty values, which never satisfy a comparison in Postgres.
+func rowMatchesQuals(row map[string]interface{}, quals plugin.KeyColumnQualMap, columns []*plugin.Column) bool {
+	for _, column := range columns {
+		if quals[column.Name] == nil {
+			continue
+		}
+		for _, qual := range quals[column.Name].Quals {
+			if qual.Value == nil || qual.Value.GetListValue() != nil || snowOperator(qual.Operator) == "" {
+				continue
+			}
+
+			// A field absent from the API response says nothing about the qual, but a field that is
+			// present and empty (nil after sanitizeTableObject) never satisfies one in Postgres.
+			value, present := row[column.Name]
+			if !present {
+				continue
+			}
+			if value == nil {
+				return false
+			}
+
+			// Only timestamps need an exact recheck. INT, DOUBLE and BOOL filters are exact in
+			// sysparm_query once the empty value case above is handled.
+			if column.Type != proto.ColumnType_TIMESTAMP || qual.Value.GetTimestampValue() == nil {
+				continue
+			}
+			raw, ok := value.(string)
+			if !ok {
+				continue
+			}
+			// ServiceNow returns naive datetimes. Parsing as UTC here matches what Postgres does
+			// with the same string, so this recheck agrees with the Postgres recheck.
+			rowTime, err := time.Parse("2006-01-02 15:04:05", raw)
+			if err != nil {
+				continue
+			}
+			cmp := rowTime.Compare(qual.Value.GetTimestampValue().AsTime())
+			var match bool
+			switch qual.Operator {
+			case "=":
+				match = cmp == 0
+			case ">":
+				match = cmp > 0
+			case ">=":
+				match = cmp >= 0
+			case "<":
+				match = cmp < 0
+			case "<=":
+				match = cmp <= 0
+			}
+			if !match {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func ignoreError(errors []string) plugin.ErrorPredicateWithContext {

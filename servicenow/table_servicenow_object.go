@@ -52,6 +52,11 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 			for _, element := range response.Result {
 				sanitizeTableObject(element)
 
+				// Skip rows that don't match the exact quals, so they don't count towards the limit
+				if !rowMatchesQuals(element, d.Quals, d.Table.Columns) {
+					continue
+				}
+
 				d.StreamListItem(ctx, element)
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.RowsRemaining(ctx) == 0 {

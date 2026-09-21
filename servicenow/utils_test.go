@@ -37,37 +37,139 @@ func TestStringEquality(t *testing.T) {
 	}
 }
 
-func TestStringNotEqual(t *testing.T) {
+func TestStringNotEqualNotPushedDown(t *testing.T) {
+	// ServiceNow's != is the complement of a case-insensitive match, so it excludes rows that
+	// differ only by case and that Postgres would keep. Nothing client-side can add them back,
+	// so the filter stays client-side entirely.
 	quals, cols := makeQualMapSingle("category", proto.ColumnType_STRING, "<>",
 		&proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: "software"}})
 	result := buildQueryFromQuals(quals, cols, nil)
-	if result != "category!=software" {
-		t.Errorf("expected 'category!=software', got '%s'", result)
+	if result != "" {
+		t.Errorf("expected empty for a string <>, got '%s'", result)
 	}
 }
 
-func TestStringListValueSkipped(t *testing.T) {
-	cols := []*plugin.Column{{Name: "category", Type: proto.ColumnType_STRING}}
-	quals := plugin.KeyColumnQualMap{
-		"category": &plugin.KeyColumnQuals{
-			Name: "category",
+// makeStringListQual builds a list qual on a STRING column, the shape an IN clause produces.
+func makeStringListQual(name string, op string, values ...string) (plugin.KeyColumnQualMap, *plugin.Column) {
+	listValues := make([]*proto.QualValue, len(values))
+	for i, v := range values {
+		listValues[i] = &proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: v}}
+	}
+	qm := plugin.KeyColumnQualMap{
+		name: &plugin.KeyColumnQuals{
+			Name: name,
 			Quals: quals.QualSlice{
 				&quals.Qual{
-					Column:   "category",
-					Operator: "=",
+					Column:   name,
+					Operator: op,
 					Value: &proto.QualValue{Value: &proto.QualValue_ListValue{
-						ListValue: &proto.QualValueList{Values: []*proto.QualValue{
-							{Value: &proto.QualValue_StringValue{StringValue: "software"}},
-							{Value: &proto.QualValue_StringValue{StringValue: "hardware"}},
-						}},
+						ListValue: &proto.QualValueList{Values: listValues},
 					}},
 				},
 			},
 		},
 	}
+	return qm, &plugin.Column{Name: name, Type: proto.ColumnType_STRING}
+}
+
+func TestStringListPushedDownAsIn(t *testing.T) {
+	quals, col := makeStringListQual("category", "=", "software", "hardware")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "categoryINsoftware,hardware" {
+		t.Errorf("expected 'categoryINsoftware,hardware', got '%s'", result)
+	}
+}
+
+func TestStringListSingleValuePushedDownAsIn(t *testing.T) {
+	quals, col := makeStringListQual("category", "=", "software")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "categoryINsoftware" {
+		t.Errorf("expected 'categoryINsoftware', got '%s'", result)
+	}
+}
+
+func TestStringListWithSpacesPushedDownAsIn(t *testing.T) {
+	// Spaces need no handling: the client URL encodes them and IN matches the whole value.
+	quals, col := makeStringListQual("category", "=", "Event Management", "hardware")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "categoryINEvent Management,hardware" {
+		t.Errorf("expected 'categoryINEvent Management,hardware', got '%s'", result)
+	}
+}
+
+func TestStringNotInListNotPushedDown(t *testing.T) {
+	quals, col := makeStringListQual("category", "<>", "software", "hardware")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "" {
+		t.Errorf("expected empty for a <> list, got '%s'", result)
+	}
+}
+
+func TestStringEmptyListSkipped(t *testing.T) {
+	quals, col := makeStringListQual("category", "=")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "" {
+		t.Errorf("expected empty for an empty list, got '%s'", result)
+	}
+}
+
+func TestTwoStringListsPushedDownAsIn(t *testing.T) {
+	// Two lists are passed through by the SDK unaltered, and the FDW still pushes the limit
+	// down for them, so both have to reach the API.
+	qm, categoryCol := makeStringListQual("category", "=", "hardware", "network")
+	classQuals, classCol := makeStringListQual("sys_class_name", "=", "incident", "problem")
+	qm["sys_class_name"] = classQuals["sys_class_name"]
+	result := buildQueryFromQuals(qm, []*plugin.Column{categoryCol, classCol}, nil)
+	expected := "categoryINhardware,network^sys_class_nameINincident,problem"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+}
+
+// An encoded query has no escaping: ^ separates conditions and , separates IN values. The API
+// silently drops a malformed fragment instead of rejecting it, so a value carrying a separator
+// is not pushed down at all and the unfiltered rows are narrowed client-side.
+
+func TestStringEqualityWithCaretNotPushedDown(t *testing.T) {
+	quals, cols := makeQualMapSingle("category", proto.ColumnType_STRING, "=",
+		&proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: "hardware^active=true"}})
 	result := buildQueryFromQuals(quals, cols, nil)
 	if result != "" {
-		t.Errorf("expected empty (list skipped), got '%s'", result)
+		t.Errorf("expected empty for a value containing ^, got '%s'", result)
+	}
+}
+
+func TestStringListWithCaretNotPushedDown(t *testing.T) {
+	quals, col := makeStringListQual("category", "=", "software", "hard^ware")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "" {
+		t.Errorf("expected empty for a list value containing ^, got '%s'", result)
+	}
+}
+
+func TestStringListWithCommaNotPushedDown(t *testing.T) {
+	// Pushing only the safe values would narrow the filter, so the whole list is dropped.
+	quals, col := makeStringListQual("category", "=", "software", "hard,ware")
+	result := buildQueryFromQuals(quals, []*plugin.Column{col}, nil)
+	if result != "" {
+		t.Errorf("expected empty for a list value containing a comma, got '%s'", result)
+	}
+}
+
+func TestStringListWithCaretStillAllowsOtherFilters(t *testing.T) {
+	// Dropping one unpushable list must not drop the filters around it.
+	qm, categoryCol := makeStringListQual("category", "=", "hard^ware")
+	qm["priority"] = &plugin.KeyColumnQuals{
+		Name: "priority",
+		Quals: quals.QualSlice{
+			&quals.Qual{Column: "priority", Operator: "=",
+				Value: &proto.QualValue{Value: &proto.QualValue_Int64Value{Int64Value: 1}}},
+		},
+	}
+	cols := []*plugin.Column{categoryCol, {Name: "priority", Type: proto.ColumnType_INT}}
+	result := buildQueryFromQuals(qm, cols, nil)
+	if result != "priority=1" {
+		t.Errorf("expected 'priority=1', got '%s'", result)
 	}
 }
 
@@ -596,29 +698,188 @@ func TestRowMatchesQualsMissingFieldIgnored(t *testing.T) {
 	}
 }
 
-func TestRowMatchesQualsListQualIgnored(t *testing.T) {
-	cols := []*plugin.Column{{Name: "priority", Type: proto.ColumnType_INT}}
-	quals := plugin.KeyColumnQualMap{
-		"priority": &plugin.KeyColumnQuals{
-			Name: "priority",
+func TestRowMatchesQualsIntListMembershipRechecked(t *testing.T) {
+	// The IN filter is exact for integers, but a `not in` list is never pushed down at all, so
+	// membership is rechecked either way rather than trusting the filter that was sent.
+	quals, col := makeIntListQual("priority", "=", 1, 2)
+	cols := []*plugin.Column{col}
+	if !rowMatchesQuals(map[string]interface{}{"priority": "2"}, quals, cols) {
+		t.Error("expected a value in the list to match")
+	}
+	if rowMatchesQuals(map[string]interface{}{"priority": "3"}, quals, cols) {
+		t.Error("expected a value outside the list to be skipped")
+	}
+}
+
+func TestRowMatchesQualsIntNotInListRechecked(t *testing.T) {
+	quals, col := makeIntListQual("priority", "<>", 1, 2)
+	cols := []*plugin.Column{col}
+	if !rowMatchesQuals(map[string]interface{}{"priority": "3"}, quals, cols) {
+		t.Error("expected a value outside a not-in list to match")
+	}
+	if rowMatchesQuals(map[string]interface{}{"priority": "1"}, quals, cols) {
+		t.Error("expected a value in a not-in list to be skipped")
+	}
+}
+
+// ServiceNow compares strings case-insensitively, for =, != and IN alike. Only = and IN are
+// pushed down, both returning a superset, and these are what narrow that superset exactly.
+
+func TestRowMatchesQualsStringEqualityIsCaseSensitive(t *testing.T) {
+	quals, cols := makeQualMapSingle("category", proto.ColumnType_STRING, "=",
+		&proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: "event management"}})
+
+	if !rowMatchesQuals(map[string]interface{}{"category": "event management"}, quals, cols) {
+		t.Error("expected an exact match to match")
+	}
+	if rowMatchesQuals(map[string]interface{}{"category": "Event Management"}, quals, cols) {
+		t.Error("expected a case variant returned by the API to be skipped")
+	}
+}
+
+func TestRowMatchesQualsStringNotEqualIsCaseSensitive(t *testing.T) {
+	quals, cols := makeQualMapSingle("category", proto.ColumnType_STRING, "<>",
+		&proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: "event management"}})
+
+	// This is the row ServiceNow's != would have excluded, and Postgres keeps it
+	if !rowMatchesQuals(map[string]interface{}{"category": "Event Management"}, quals, cols) {
+		t.Error("expected a case variant to satisfy a string <>")
+	}
+	if rowMatchesQuals(map[string]interface{}{"category": "event management"}, quals, cols) {
+		t.Error("expected an exact match to be skipped for a string <>")
+	}
+}
+
+func TestRowMatchesQualsStringListMembershipIsCaseSensitive(t *testing.T) {
+	quals, col := makeStringListQual("category", "=", "hardware", "network")
+	cols := []*plugin.Column{col}
+
+	if !rowMatchesQuals(map[string]interface{}{"category": "network"}, quals, cols) {
+		t.Error("expected a value in the list to match")
+	}
+	if rowMatchesQuals(map[string]interface{}{"category": "Network"}, quals, cols) {
+		t.Error("expected a case variant of a list value to be skipped")
+	}
+	if rowMatchesQuals(map[string]interface{}{"category": "software"}, quals, cols) {
+		t.Error("expected a value outside the list to be skipped")
+	}
+}
+
+func TestRowMatchesQualsStringNotInListRechecked(t *testing.T) {
+	// A `not in` list is never pushed down, so the API returns everything and this is the only
+	// thing keeping non-matching rows from consuming the pushed down limit.
+	quals, col := makeStringListQual("category", "<>", "hardware", "network")
+	cols := []*plugin.Column{col}
+
+	if !rowMatchesQuals(map[string]interface{}{"category": "software"}, quals, cols) {
+		t.Error("expected a value outside a not-in list to match")
+	}
+	if !rowMatchesQuals(map[string]interface{}{"category": "Hardware"}, quals, cols) {
+		t.Error("expected a case variant to satisfy a not-in list")
+	}
+	if rowMatchesQuals(map[string]interface{}{"category": "hardware"}, quals, cols) {
+		t.Error("expected a value in a not-in list to be skipped")
+	}
+}
+
+func TestRowMatchesQualsEmptyValueWithListQual(t *testing.T) {
+	// IN never returns empty values, but an unpushable list leaves them in the response, and
+	// NULL satisfies neither `in` nor `not in` in Postgres.
+	inQuals, col := makeStringListQual("category", "=", "hardware")
+	cols := []*plugin.Column{col}
+	if rowMatchesQuals(map[string]interface{}{"category": nil}, inQuals, cols) {
+		t.Error("expected an empty value to be skipped for an in list")
+	}
+	notInQuals, _ := makeStringListQual("category", "<>", "hardware")
+	if rowMatchesQuals(map[string]interface{}{"category": nil}, notInQuals, cols) {
+		t.Error("expected an empty value to be skipped for a not-in list")
+	}
+}
+
+func TestRowMatchesQualsBoolListMembership(t *testing.T) {
+	// ServiceNow returns booleans as strings
+	cols := []*plugin.Column{{Name: "active", Type: proto.ColumnType_BOOL}}
+	qm := plugin.KeyColumnQualMap{
+		"active": &plugin.KeyColumnQuals{
+			Name: "active",
 			Quals: quals.QualSlice{
-				&quals.Qual{
-					Column:   "priority",
-					Operator: "=",
+				&quals.Qual{Column: "active", Operator: "=",
 					Value: &proto.QualValue{Value: &proto.QualValue_ListValue{
 						ListValue: &proto.QualValueList{Values: []*proto.QualValue{
-							{Value: &proto.QualValue_Int64Value{Int64Value: 1}},
-							{Value: &proto.QualValue_Int64Value{Int64Value: 2}},
+							{Value: &proto.QualValue_BoolValue{BoolValue: true}},
 						}},
 					}},
 				},
 			},
 		},
 	}
-	// Lists go to the API with ServiceNow's IN operator, which is exact, so no recheck here
-	row := map[string]interface{}{"priority": "3"}
-	if !rowMatchesQuals(row, quals, cols) {
-		t.Error("expected a list qual to be left to the IN filter")
+	if !rowMatchesQuals(map[string]interface{}{"active": "true"}, qm, cols) {
+		t.Error("expected true to match a list of (true)")
+	}
+	if rowMatchesQuals(map[string]interface{}{"active": "false"}, qm, cols) {
+		t.Error("expected false to be skipped for a list of (true)")
+	}
+}
+
+func TestRowMatchesQualsTimestampListMembership(t *testing.T) {
+	// Timestamp lists are not pushed down, so the whole table comes back and membership has to
+	// be applied here to the instant, not the string.
+	cols := []*plugin.Column{{Name: "opened_at", Type: proto.ColumnType_TIMESTAMP}}
+	wanted := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+	qm := plugin.KeyColumnQualMap{
+		"opened_at": &plugin.KeyColumnQuals{
+			Name: "opened_at",
+			Quals: quals.QualSlice{
+				&quals.Qual{Column: "opened_at", Operator: "=",
+					Value: &proto.QualValue{Value: &proto.QualValue_ListValue{
+						ListValue: &proto.QualValueList{Values: []*proto.QualValue{
+							{Value: &proto.QualValue_TimestampValue{TimestampValue: timestamppb.New(wanted)}},
+						}},
+					}},
+				},
+			},
+		},
+	}
+	if !rowMatchesQuals(map[string]interface{}{"opened_at": "2026-08-15 12:00:00"}, qm, cols) {
+		t.Error("expected the listed instant to match")
+	}
+	if rowMatchesQuals(map[string]interface{}{"opened_at": "2026-08-15 12:00:01"}, qm, cols) {
+		t.Error("expected an instant one second off to be skipped")
+	}
+}
+
+func TestRowMatchesQualsDoubleListComparesNumerically(t *testing.T) {
+	// ServiceNow's string form of a number need not match Postgres's, so 1.50 is 1.5
+	cols := []*plugin.Column{{Name: "cost", Type: proto.ColumnType_DOUBLE}}
+	qm := plugin.KeyColumnQualMap{
+		"cost": &plugin.KeyColumnQuals{
+			Name: "cost",
+			Quals: quals.QualSlice{
+				&quals.Qual{Column: "cost", Operator: "=",
+					Value: &proto.QualValue{Value: &proto.QualValue_ListValue{
+						ListValue: &proto.QualValueList{Values: []*proto.QualValue{
+							{Value: &proto.QualValue_DoubleValue{DoubleValue: 1.5}},
+						}},
+					}},
+				},
+			},
+		},
+	}
+	if !rowMatchesQuals(map[string]interface{}{"cost": "1.50"}, qm, cols) {
+		t.Error("expected 1.50 to match a list of (1.5)")
+	}
+	if rowMatchesQuals(map[string]interface{}{"cost": "2.5"}, qm, cols) {
+		t.Error("expected 2.5 to be skipped for a list of (1.5)")
+	}
+}
+
+func TestRowMatchesQualsUnparsableListValueKept(t *testing.T) {
+	// A value the plugin cannot read tells it nothing, so the row goes to Postgres rather than
+	// being dropped on a guess.
+	quals, col := makeIntListQual("priority", "=", 1, 2)
+	cols := []*plugin.Column{col}
+	if !rowMatchesQuals(map[string]interface{}{"priority": "not a number"}, quals, cols) {
+		t.Error("expected an unparsable int to be left to Postgres")
 	}
 }
 
@@ -739,5 +1000,30 @@ func TestRowMatchesQualsAfterSanitizeTableObject(t *testing.T) {
 	sanitizeTableObject(row)
 	if rowMatchesQuals(row, quals, cols) {
 		t.Error("expected the sanitized empty value to be skipped")
+	}
+}
+
+func TestRowMatchesQualsStringRangeLeftToPostgres(t *testing.T) {
+	// No table declares an ordered operator on a string column today. If one ever does, Postgres
+	// collates strings its own way, so a range must not be second-guessed here - and in
+	// particular the value on the bound must not be dropped as if this were a <>.
+	for _, operator := range []string{">", ">=", "<", "<="} {
+		quals, cols := makeQualMapSingle("category", proto.ColumnType_STRING, operator,
+			&proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: "hardware"}})
+		if !rowMatchesQuals(map[string]interface{}{"category": "hardware"}, quals, cols) {
+			t.Errorf("expected the bound value to be left to Postgres for %s", operator)
+		}
+		if !rowMatchesQuals(map[string]interface{}{"category": "software"}, quals, cols) {
+			t.Errorf("expected a non-matching value to be left to Postgres for %s", operator)
+		}
+	}
+}
+
+func TestRowMatchesQualsOrderedListLeftToPostgres(t *testing.T) {
+	// A list only ever arrives with = or <>. Anything else is not a membership test, so it must
+	// not be read as one.
+	quals, col := makeIntListQual("priority", ">", 1, 2)
+	if !rowMatchesQuals(map[string]interface{}{"priority": "1"}, quals, []*plugin.Column{col}) {
+		t.Error("expected an ordered list operator to be left to Postgres")
 	}
 }

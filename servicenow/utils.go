@@ -35,13 +35,32 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 			}
 			if list := qual.Value.GetListValue(); list != nil {
 				// The SDK splits a single IN list into one call per value, but passes two or more
-				// lists through unaltered. The FDW still pushes the limit down for them, so integer
-				// lists are sent with ServiceNow's IN operator to keep the filter exact.
-				if filterQualItem.Type == proto.ColumnType_INT && qual.Operator == "=" && len(list.Values) > 0 {
-					values := make([]string, len(list.Values))
-					for i, v := range list.Values {
-						values[i] = strconv.FormatInt(v.GetInt64Value(), 10)
+				// lists through unaltered. The FDW still pushes the limit down for them, so lists
+				// are sent with ServiceNow's IN operator, which is a superset of the SQL predicate
+				// that rowMatchesQuals narrows. A `not in` list is left entirely client-side, since
+				// negating a case-insensitive match drops rows Postgres would keep.
+				if qual.Operator != "=" || len(list.Values) == 0 {
+					continue
+				}
+				values := make([]string, 0, len(list.Values))
+				switch filterQualItem.Type {
+				case proto.ColumnType_INT:
+					for _, v := range list.Values {
+						values = append(values, strconv.FormatInt(v.GetInt64Value(), 10))
 					}
+				case proto.ColumnType_STRING:
+					for _, v := range list.Values {
+						// IN is comma delimited, so a value containing a comma cannot be expressed.
+						// Pushing the rest of the list would narrow the filter, so drop all of it
+						// and let the client-side recheck do the work.
+						if !snowValuePushable(v.GetStringValue(), true) {
+							values = nil
+							break
+						}
+						values = append(values, v.GetStringValue())
+					}
+				}
+				if len(values) > 0 {
 					filters = append(filters, fmt.Sprintf("%sIN%s", filterQualItem.Name, strings.Join(values, ",")))
 				}
 				continue
@@ -50,11 +69,12 @@ func buildQueryFromQuals(equalQuals plugin.KeyColumnQualMap, tableColumns []*plu
 			value := qual.Value
 			switch filterQualItem.Type {
 			case proto.ColumnType_STRING:
-				switch qual.Operator {
-				case "=":
+				// ServiceNow compares strings case-insensitively, so = returns a superset of what
+				// Postgres asked for and rowMatchesQuals narrows it. != is the complement of that
+				// superset: it excludes rows differing only by case, which Postgres would keep, and
+				// no client-side filtering can add them back, so it is not pushed down.
+				if qual.Operator == "=" && snowValuePushable(value.GetStringValue(), false) {
 					filters = append(filters, fmt.Sprintf("%s=%s", filterQualItem.Name, value.GetStringValue()))
-				case "<>":
-					filters = append(filters, fmt.Sprintf("%s!=%s", filterQualItem.Name, value.GetStringValue()))
 				}
 			case proto.ColumnType_INT:
 				op := snowOperator(qual.Operator)
@@ -122,22 +142,105 @@ func snowOperator(op string) string {
 	}
 }
 
+// snowValuePushable reports whether a string can be carried inside sysparm_query unchanged.
+// There is no escaping in an encoded query: ^ separates conditions and , separates IN values, so a
+// value containing one is silently reinterpreted rather than rejected - the API drops the malformed
+// fragment and answers a different question. Those quals are not pushed down at all; the unfiltered
+// rows are a superset, which the client-side recheck then narrows.
+func snowValuePushable(value string, inList bool) bool {
+	if strings.Contains(value, "^") {
+		return false
+	}
+	return !inList || !strings.Contains(value, ",")
+}
+
+// rawValueEquals compares a raw ServiceNow field value against a qual value exactly. ServiceNow
+// returns every field as a string, so each type is parsed back before comparing. The second return
+// value reports whether the comparison could be made at all; when it is false the row is left for
+// Postgres to judge rather than being dropped on a guess.
+func rawValueEquals(raw interface{}, columnType proto.ColumnType, qualValue *proto.QualValue) (bool, bool) {
+	text, isText := raw.(string)
+
+	switch columnType {
+	case proto.ColumnType_STRING:
+		if !isText {
+			return false, false
+		}
+		return text == qualValue.GetStringValue(), true
+	case proto.ColumnType_INT:
+		if !isText {
+			return false, false
+		}
+		number, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return false, false
+		}
+		return number == qualValue.GetInt64Value(), true
+	case proto.ColumnType_DOUBLE:
+		if !isText {
+			return false, false
+		}
+		number, err := strconv.ParseFloat(text, 64)
+		if err != nil {
+			return false, false
+		}
+		return number == qualValue.GetDoubleValue(), true
+	case proto.ColumnType_BOOL:
+		if !isText {
+			if flag, isBool := raw.(bool); isBool {
+				return flag == qualValue.GetBoolValue(), true
+			}
+			return false, false
+		}
+		flag, err := strconv.ParseBool(text)
+		if err != nil {
+			return false, false
+		}
+		return flag == qualValue.GetBoolValue(), true
+	case proto.ColumnType_TIMESTAMP:
+		rowTime, ok := parseSnowTime(raw)
+		if !ok || qualValue.GetTimestampValue() == nil {
+			return false, false
+		}
+		return rowTime.Equal(qualValue.GetTimestampValue().AsTime()), true
+	}
+
+	return false, false
+}
+
+// parseSnowTime parses a datetime as ServiceNow returns it. The values are naive, so reading them as
+// UTC matches what Postgres does with the same string and keeps this recheck in agreement with it.
+func parseSnowTime(raw interface{}) (time.Time, bool) {
+	text, isText := raw.(string)
+	if !isText {
+		return time.Time{}, false
+	}
+	parsed, err := time.Parse("2006-01-02 15:04:05", text)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
+}
+
 // rowMatchesQuals applies the pushed down quals to a row exactly. The FDW pushes the limit down
-// when every qual is on a key column, so each row streamed must really match. Two cases are not
-// exact in sysparm_query: timestamp bounds are widened by the max UTC offset, and ServiceNow's
-// != also returns empty values, which never satisfy a comparison in Postgres.
+// when every qual is on a key column, so each row streamed must really match, or a row Postgres
+// discards consumes part of the limit and the query silently under-returns. Three cases are not
+// exact in sysparm_query: timestamp bounds are widened by the max UTC offset, string = and IN are
+// case-insensitive, and filters that cannot be expressed at all are not pushed. ServiceNow's !=
+// also returns empty values, which never satisfy a comparison in Postgres.
 func rowMatchesQuals(row map[string]interface{}, quals plugin.KeyColumnQualMap, columns []*plugin.Column) bool {
 	for _, column := range columns {
 		if quals[column.Name] == nil {
 			continue
 		}
 		for _, qual := range quals[column.Name].Quals {
-			if qual.Value == nil || qual.Value.GetListValue() != nil || snowOperator(qual.Operator) == "" {
+			if qual.Value == nil || snowOperator(qual.Operator) == "" {
 				continue
 			}
 
 			// A field absent from the API response says nothing about the qual, but a field that is
-			// present and empty (nil after sanitizeTableObject) never satisfies one in Postgres.
+			// present and empty (nil after sanitizeTableObject) never satisfies one in Postgres,
+			// including `in` and `not in`.
 			value, present := row[column.Name]
 			if !present {
 				continue
@@ -146,38 +249,72 @@ func rowMatchesQuals(row map[string]interface{}, quals plugin.KeyColumnQualMap, 
 				return false
 			}
 
-			// Only timestamps need an exact recheck. INT, DOUBLE and BOOL filters are exact in
-			// sysparm_query once the empty value case above is handled.
-			if column.Type != proto.ColumnType_TIMESTAMP || qual.Value.GetTimestampValue() == nil {
+			// Only equality is rechecked here. The ordered operators are exact in sysparm_query
+			// for every type except timestamps, which are handled separately below, and Postgres
+			// collates strings differently from Go, so ordering is never second-guessed.
+			isEquality := qual.Operator == "=" || qual.Operator == "<>"
+
+			// An `in` list reaches the API as a case-insensitive IN, or not at all; either way
+			// membership has to be rechecked here. A `not in` list is never pushed down.
+			if list := qual.Value.GetListValue(); list != nil {
+				if !isEquality {
+					continue
+				}
+				matched, decided := false, true
+				for _, listValue := range list.Values {
+					equal, ok := rawValueEquals(value, column.Type, listValue)
+					if !ok {
+						// Nothing reliable can be said about this list, so leave it to Postgres.
+						decided = false
+						break
+					}
+					if equal {
+						matched = true
+						break
+					}
+				}
+				if decided && matched != (qual.Operator == "=") {
+					return false
+				}
 				continue
 			}
-			raw, ok := value.(string)
-			if !ok {
-				continue
+
+			switch column.Type {
+			case proto.ColumnType_STRING:
+				// ServiceNow matched this case-insensitively, so repeat it case-sensitively.
+				equal, ok := rawValueEquals(value, column.Type, qual.Value)
+				if !isEquality || !ok {
+					continue
+				}
+				if equal != (qual.Operator == "=") {
+					return false
+				}
+			case proto.ColumnType_TIMESTAMP:
+				// The bounds went out widened by the max UTC offset, so re-apply them exactly.
+				rowTime, ok := parseSnowTime(value)
+				if !ok || qual.Value.GetTimestampValue() == nil {
+					continue
+				}
+				cmp := rowTime.Compare(qual.Value.GetTimestampValue().AsTime())
+				var match bool
+				switch qual.Operator {
+				case "=":
+					match = cmp == 0
+				case ">":
+					match = cmp > 0
+				case ">=":
+					match = cmp >= 0
+				case "<":
+					match = cmp < 0
+				case "<=":
+					match = cmp <= 0
+				}
+				if !match {
+					return false
+				}
 			}
-			// ServiceNow returns naive datetimes. Parsing as UTC here matches what Postgres does
-			// with the same string, so this recheck agrees with the Postgres recheck.
-			rowTime, err := time.Parse("2006-01-02 15:04:05", raw)
-			if err != nil {
-				continue
-			}
-			cmp := rowTime.Compare(qual.Value.GetTimestampValue().AsTime())
-			var match bool
-			switch qual.Operator {
-			case "=":
-				match = cmp == 0
-			case ">":
-				match = cmp > 0
-			case ">=":
-				match = cmp >= 0
-			case "<":
-				match = cmp < 0
-			case "<=":
-				match = cmp <= 0
-			}
-			if !match {
-				return false
-			}
+			// INT, DOUBLE and BOOL scalars are exact in sysparm_query once the empty value case
+			// above is handled, so they need no recheck.
 		}
 	}
 	return true

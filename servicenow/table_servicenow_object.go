@@ -31,18 +31,21 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 			plugin.Logger(ctx).Debug("servicenow.listServicenowObjectsByTable", "table_name", d.Table.Name, "query_condition", query)
 		}
 
+		const fullPage = 30
 		offset := 0
-		limit := 30
-		if d.QueryContext.Limit != nil {
-			pgLimit := int(*d.QueryContext.Limit)
-			if pgLimit < limit {
-				limit = pgLimit
-			}
+
+		// Only the first page is trimmed to the SQL limit, which is all an exactly filtered query
+		// needs. Reaching a second page means rows are being dropped, either by the recheck below
+		// or by Postgres, and a page the size of the limit would then walk the rest of the table a
+		// few rows per request.
+		pageSize := fullPage
+		if d.QueryContext.Limit != nil && int(*d.QueryContext.Limit) < pageSize {
+			pageSize = int(*d.QueryContext.Limit)
 		}
 
 		for {
 			var response tableListResult
-			err = client.NowTable.List(tableName, limit, offset, query, false, &response)
+			err = client.NowTable.List(tableName, pageSize, offset, query, false, &response)
 			if err != nil {
 				logger.Error("servicenow.listServicenowObjectsByTable", "query_error", err)
 				return nil, err
@@ -64,10 +67,11 @@ func listServicenowObjectsByTable(tableName string, servicenowCols map[string]st
 				}
 			}
 
-			if totalReturned < limit {
+			if totalReturned < pageSize {
 				break
 			}
-			offset += limit
+			offset += totalReturned
+			pageSize = fullPage
 		}
 		return nil, err
 	}

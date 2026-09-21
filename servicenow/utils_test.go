@@ -1027,3 +1027,166 @@ func TestRowMatchesQualsOrderedListLeftToPostgres(t *testing.T) {
 		t.Error("expected an ordered list operator to be left to Postgres")
 	}
 }
+
+// The comparisons below go through rawValueEquals directly. Its second return value is what keeps
+// the recheck safe: false means nothing reliable can be said about the row, so it survives for
+// Postgres to judge. A decided false in its place would drop rows that a pushed down limit then
+// silently misses, which is the failure this recheck exists to prevent.
+
+func strQual(value string) *proto.QualValue {
+	return &proto.QualValue{Value: &proto.QualValue_StringValue{StringValue: value}}
+}
+
+func intQual(value int64) *proto.QualValue {
+	return &proto.QualValue{Value: &proto.QualValue_Int64Value{Int64Value: value}}
+}
+
+func dblQual(value float64) *proto.QualValue {
+	return &proto.QualValue{Value: &proto.QualValue_DoubleValue{DoubleValue: value}}
+}
+
+func boolQual(value bool) *proto.QualValue {
+	return &proto.QualValue{Value: &proto.QualValue_BoolValue{BoolValue: value}}
+}
+
+func tsQual(value time.Time) *proto.QualValue {
+	return &proto.QualValue{Value: &proto.QualValue_TimestampValue{TimestampValue: timestamppb.New(value)}}
+}
+
+func TestRawValueEqualsDecidedComparisons(t *testing.T) {
+	instant := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name       string
+		raw        interface{}
+		columnType proto.ColumnType
+		qualValue  *proto.QualValue
+		expected   bool
+	}{
+		{"string equal", "software", proto.ColumnType_STRING, strQual("software"), true},
+		{"string differing by case", "Software", proto.ColumnType_STRING, strQual("software"), false},
+		{"int equal", "2", proto.ColumnType_INT, intQual(2), true},
+		{"int unequal", "3", proto.ColumnType_INT, intQual(2), false},
+		{"int leading zero", "02", proto.ColumnType_INT, intQual(2), true},
+		{"double equal", "1.5", proto.ColumnType_DOUBLE, dblQual(1.5), true},
+		{"double unequal", "1.5", proto.ColumnType_DOUBLE, dblQual(2.5), false},
+		{"double trailing zero", "1.50", proto.ColumnType_DOUBLE, dblQual(1.5), true},
+		{"bool as the string ServiceNow returns", "true", proto.ColumnType_BOOL, boolQual(true), true},
+		{"bool as a string, unequal", "false", proto.ColumnType_BOOL, boolQual(true), false},
+		{"bool already decoded by encoding/json", true, proto.ColumnType_BOOL, boolQual(true), true},
+		{"bool already decoded, unequal", false, proto.ColumnType_BOOL, boolQual(true), false},
+		{"timestamp equal", "2026-08-15 12:00:00", proto.ColumnType_TIMESTAMP, tsQual(instant), true},
+		{"timestamp a second out", "2026-08-15 12:00:01", proto.ColumnType_TIMESTAMP, tsQual(instant), false},
+	}
+	for _, tt := range tests {
+		equal, decided := rawValueEquals(tt.raw, tt.columnType, tt.qualValue)
+		if !decided {
+			t.Errorf("%s: expected the comparison to be decided", tt.name)
+			continue
+		}
+		if equal != tt.expected {
+			t.Errorf("%s: rawValueEquals(%#v) = %v, want %v", tt.name, tt.raw, equal, tt.expected)
+		}
+	}
+}
+
+func TestRawValueEqualsUndecidedValues(t *testing.T) {
+	tests := []struct {
+		name       string
+		raw        interface{}
+		columnType proto.ColumnType
+		qualValue  *proto.QualValue
+	}{
+		{"string column holding a decoded number", float64(1), proto.ColumnType_STRING, strQual("1")},
+		{"int column holding a decoded number", float64(2), proto.ColumnType_INT, intQual(2)},
+		{"int column holding prose", "not a number", proto.ColumnType_INT, intQual(2)},
+		{"double column holding a decoded number", float64(1.5), proto.ColumnType_DOUBLE, dblQual(1.5)},
+		{"double column holding prose", "not a number", proto.ColumnType_DOUBLE, dblQual(1.5)},
+		{"bool column holding a decoded number", float64(1), proto.ColumnType_BOOL, boolQual(true)},
+		{"bool column holding prose", "yes", proto.ColumnType_BOOL, boolQual(true)},
+		{"timestamp column holding prose", "yesterday", proto.ColumnType_TIMESTAMP, tsQual(time.Now())},
+		{"timestamp column holding a decoded number", float64(0), proto.ColumnType_TIMESTAMP, tsQual(time.Now())},
+		{"timestamp qual carrying no timestamp", "2026-08-15 12:00:00", proto.ColumnType_TIMESTAMP, &proto.QualValue{}},
+		{"column type with no comparison defined", "{}", proto.ColumnType_JSON, strQual("{}")},
+	}
+	for _, tt := range tests {
+		equal, decided := rawValueEquals(tt.raw, tt.columnType, tt.qualValue)
+		if decided {
+			t.Errorf("%s: expected rawValueEquals to report it could not decide, got equal=%v", tt.name, equal)
+		}
+	}
+}
+
+// makeBoolListQual builds a list qual on a BOOL column, the shape an IN clause produces.
+func makeBoolListQual(name string, op string, values ...bool) (plugin.KeyColumnQualMap, *plugin.Column) {
+	listValues := make([]*proto.QualValue, len(values))
+	for i, v := range values {
+		listValues[i] = boolQual(v)
+	}
+	qm := plugin.KeyColumnQualMap{
+		name: &plugin.KeyColumnQuals{
+			Name: name,
+			Quals: quals.QualSlice{
+				&quals.Qual{
+					Column:   name,
+					Operator: op,
+					Value: &proto.QualValue{Value: &proto.QualValue_ListValue{
+						ListValue: &proto.QualValueList{Values: listValues},
+					}},
+				},
+			},
+		},
+	}
+	return qm, &plugin.Column{Name: name, Type: proto.ColumnType_BOOL}
+}
+
+func TestRowMatchesQualsDecodedBoolListMembership(t *testing.T) {
+	// Booleans arrive as strings today, but a response decoded into a Go bool has to be read
+	// rather than treated as unreadable, or every such row would be handed back to Postgres.
+	quals, col := makeBoolListQual("active", "=", true)
+	cols := []*plugin.Column{col}
+	if !rowMatchesQuals(map[string]interface{}{"active": true}, quals, cols) {
+		t.Error("expected a decoded true to match a list of (true)")
+	}
+	if rowMatchesQuals(map[string]interface{}{"active": false}, quals, cols) {
+		t.Error("expected a decoded false not to match a list of (true)")
+	}
+}
+
+func TestRowMatchesQualsUnreadableBoolListValueKept(t *testing.T) {
+	// A value the plugin cannot read as a boolean says nothing about the qual, so the row goes to
+	// Postgres rather than being dropped on a guess.
+	quals, col := makeBoolListQual("active", "=", true)
+	if !rowMatchesQuals(map[string]interface{}{"active": "yes"}, quals, []*plugin.Column{col}) {
+		t.Error("expected an unreadable boolean to be left to Postgres")
+	}
+}
+
+//// PAGE SIZE
+
+func TestPageSizeFor(t *testing.T) {
+	limit := func(v int64) *int64 { return &v }
+	tests := []struct {
+		name      string
+		limit     *int64
+		firstPage bool
+		expected  int
+	}{
+		{"no limit", nil, true, snowPageSize},
+		{"limit below a full page", limit(5), true, 5},
+		{"limit of one", limit(1), true, 1},
+		{"limit exactly a full page", limit(snowPageSize), true, snowPageSize},
+		{"limit above a full page", limit(500), true, snowPageSize},
+		// Past the first page the limit is no longer a bound on rows fetched, because rows are
+		// being dropped before Postgres counts them.
+		{"limit below a full page, later page", limit(5), false, snowPageSize},
+		{"no limit, later page", nil, false, snowPageSize},
+		// ServiceNow answers 400 to a sysparm_limit of zero or less.
+		{"zero limit", limit(0), true, 1},
+		{"negative limit", limit(-1), true, 1},
+	}
+	for _, tt := range tests {
+		if result := pageSizeFor(tt.limit, tt.firstPage); result != tt.expected {
+			t.Errorf("%s: pageSizeFor() = %d, want %d", tt.name, result, tt.expected)
+		}
+	}
+}

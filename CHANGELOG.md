@@ -1,3 +1,19 @@
+## v1.3.0 [2026-09-22]
+
+_Enhancements_
+
+- Added server-side filtering for integer, timestamp, and boolean columns in the `servicenow_incident` table and in dynamic tables, and for string and integer `in` lists across all tables, which reduces the rows fetched from ServiceNow for filtered queries. ([#47](https://github.com/turbot/steampipe-plugin-servicenow/pull/47)) (Thanks [@jondesr](https://github.com/jondesr) for the contribution!)
+
+_Bug fixes_
+
+- Fixed queries with a `limit` returning fewer rows than requested when a filter on a key column did not match ServiceNow's results exactly, such as case-variant string values, timestamp bounds, or multiple `in` lists. ([#47](https://github.com/turbot/steampipe-plugin-servicenow/pull/47))
+- Fixed `<>` filters on string columns in dynamic tables excluding rows that differ only by case. These filters are now applied client-side. ([#47](https://github.com/turbot/steampipe-plugin-servicenow/pull/47))
+
+_Dependencies_
+
+- Recompiled plugin with Go version `1.26`. ([#40](https://github.com/turbot/steampipe-plugin-servicenow/pull/40))
+- Recompiled plugin with [steampipe-plugin-sdk v6.1.0](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v610-2026-08-18) that fixes data races in connection config access and the in-process scan path.
+
 ## v1.2.0 [2025-10-13]
 
 _Dependencies_

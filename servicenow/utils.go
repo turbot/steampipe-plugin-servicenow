@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/turbot/go-servicenow/servicenow"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 	"github.com/turbot/steampipe-plugin-servicenow/model"
 )
 

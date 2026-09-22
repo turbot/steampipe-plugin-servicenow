@@ -5,7 +5,8 @@ go 1.26.0
 require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/turbot/go-servicenow v0.0.1
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.14.0
+	github.com/turbot/steampipe-plugin-sdk/v6 v6.1.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
@@ -104,6 +105,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240604185151-ef581f913117 // indirect
 	google.golang.org/grpc v1.66.0 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

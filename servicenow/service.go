@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/turbot/go-servicenow/servicenow"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 func Connect(ctx context.Context, d *plugin.QueryData) (*servicenow.ServiceNow, error) {

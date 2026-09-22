@@ -1,7 +1,7 @@
 package servicenow
 
 import (
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 type servicenowConfig struct {
@@ -18,9 +18,9 @@ func ConfigInstance() interface{} {
 }
 
 func GetConfig(connection *plugin.Connection) servicenowConfig {
-	if connection == nil || connection.Config == nil {
+	if connection == nil || connection.GetConfig() == nil {
 		return servicenowConfig{}
 	}
-	config, _ := connection.Config.(servicenowConfig)
+	config, _ := connection.GetConfig().(servicenowConfig)
 	return config
 }
